@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # -----------------------------------------------------------------
+  # Nginx API Gateway & Reverse Proxy (mcp.cuang.dev)
+  # -----------------------------------------------------------------
+  nginx:
+    image: nginx:alpine
+    container_name: mcp-nginx-gateway
+    restart: unless-stopped
+    ports:
+      - "${GATEWAY_PORT:-80}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      tokopedia-mcp:
+        condition: service_started
+      shopee-mcp:
+        condition: service_started
+    networks:
+      - mcp-network
+
+  # -----------------------------------------------------------------
+  # Tokopedia MCP Server
+  # -----------------------------------------------------------------
+  tokopedia-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tokopedia-mcp
+    restart: unless-stopped
+    environment:
+      - PORT=3001
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - BASE_PATH=/tokopedia
+      - TOKOPEDIA_COOKIE=${TOKOPEDIA_COOKIE:-}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - CACHE_DEFAULT_TTL=${CACHE_DEFAULT_TTL:-300}
+      - CACHE_PRODUCT_TTL=${CACHE_PRODUCT_TTL:-1800}
+      - CACHE_SHOP_TTL=${CACHE_SHOP_TTL:-3600}
+      - REQUEST_DELAY_MS=${REQUEST_DELAY_MS:-400}
+      - MOCK_ON_BLOCKED=${MOCK_ON_BLOCKED:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+  # -----------------------------------------------------------------
+  # Shopee Indonesia MCP Server (from sibling directory)
+  # -----------------------------------------------------------------
+  shopee-mcp:
+    build:
+      context: ../shopee-indonesia-mcp
+      dockerfile: Dockerfile
+    container_name: shopee-indonesia-mcp
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - SHOPEE_COOKIE=${SHOPEE_COOKIE:-}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
+      - CACHE_DEFAULT_TTL=${CACHE_DEFAULT_TTL:-300}
+      - CACHE_PRODUCT_TTL=${CACHE_PRODUCT_TTL:-1800}
+      - CACHE_CATEGORY_TTL=${CACHE_CATEGORY_TTL:-86400}
+      - REQUEST_DELAY_MS=${REQUEST_DELAY_MS:-400}
+      - MOCK_ON_BLOCKED=${MOCK_ON_BLOCKED:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge

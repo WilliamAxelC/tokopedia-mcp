@@ -1,0 +1,51 @@
+{
+  "name": "@williamaxelc/tokopedia-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol (MCP) server for Tokopedia (tokopedia.com) - Product search, details, reviews, and shop information",
+  "main": "dist/index.js",
+  "bin": {
+    "tokopedia-mcp": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "dev:stdio": "tsx src/index.ts --stdio",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:mcp": "pnpm run build && tsx test/mcp-protocol-test.ts",
+    "test:live": "tsx scripts/live-smoke-test.ts"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "tokopedia",
+    "indonesia",
+    "ecommerce",
+    "claude",
+    "ai-agent"
+  ],
+  "author": "William Axel C",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "axios": "^1.20.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "https-proxy-agent": "^9.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^22.20.3",
+    "tsx": "^4.23.13",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.8"
+  }
+}
