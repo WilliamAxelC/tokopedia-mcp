@@ -50,6 +50,7 @@ export class TokopediaClient {
   private lastRequestTime = 0;
   private mockOnBlocked: boolean;
   private userAgent: string;
+  private anonymousCookie = '';
 
   constructor(config?: TokopediaClientConfig) {
     this.defaultCookie = config?.cookie || process.env.TOKOPEDIA_COOKIE || '';
@@ -81,6 +82,31 @@ export class TokopediaClient {
     });
   }
 
+  private async ensureSession(): Promise<string> {
+    if (this.defaultCookie) return this.defaultCookie;
+    if (this.anonymousCookie) return this.anonymousCookie;
+
+    try {
+      logger.debug('Obtaining anonymous visitor session from Tokopedia...');
+      const resp = await this.client.get(TOKOPEDIA_WEB_BASE, {
+        timeout: 8000,
+        headers: {
+          'User-Agent': this.userAgent,
+        },
+      });
+
+      const setCookies = resp.headers['set-cookie'];
+      if (setCookies && Array.isArray(setCookies)) {
+        this.anonymousCookie = setCookies.map((c) => c.split(';')[0]).join('; ');
+        logger.debug(`Anonymous session cookie established: ${this.anonymousCookie.slice(0, 40)}...`);
+      }
+    } catch (err: any) {
+      logger.debug(`Anonymous session warmup note: ${err.message}`);
+    }
+
+    return this.anonymousCookie;
+  }
+
   private async rateLimit(): Promise<void> {
     const now = Date.now();
     const elapsed = now - this.lastRequestTime;
@@ -90,8 +116,12 @@ export class TokopediaClient {
     this.lastRequestTime = Date.now();
   }
 
-  private getEffectiveHeaders(cookieOverride?: string, referer?: string): Record<string, string> {
-    const cookie = cookieOverride !== undefined ? cookieOverride : this.defaultCookie;
+  private async getEffectiveHeaders(cookieOverride?: string, referer?: string): Promise<Record<string, string>> {
+    let cookie = cookieOverride;
+    if (cookie === undefined) {
+      cookie = this.defaultCookie || (await this.ensureSession());
+    }
+
     const headers: Record<string, string> = {
       'User-Agent': this.userAgent,
     };
@@ -133,7 +163,7 @@ export class TokopediaClient {
       },
     ];
 
-    const headers = this.getEffectiveHeaders(cookieOverride, referer);
+    const headers = await this.getEffectiveHeaders(cookieOverride, referer);
 
     try {
       const response = await this.client.post(endpointUrl, payload, { headers });
@@ -205,6 +235,7 @@ export class TokopediaClient {
       rows: limit,
       st: 'product',
       ob: sortMap[sortBy] || 23,
+      source: 'search',
     };
 
     if (minPrice !== undefined && minPrice > 0) {

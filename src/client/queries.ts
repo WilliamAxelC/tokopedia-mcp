@@ -6,24 +6,14 @@ export const SEARCH_PRODUCT_QUERY = `query SearchProductQueryV4($params: String!
   ace_search_product_v4(params: $params) {
     header {
       totalData
-      totalDataText
-      default_search_url
     }
     data {
-      banner {
-        title
-        description
-      }
       products {
         id
         name
         price
-        priceInt
-        original_price
-        discount_percentage
         imageUrl
         url
-        rating
         ratingAverage
         countReview
         shop {
@@ -32,16 +22,6 @@ export const SEARCH_PRODUCT_QUERY = `query SearchProductQueryV4($params: String!
           city
           url
           isOfficial
-          isPowerMerchant
-        }
-        badges {
-          title
-          imageUrl
-        }
-        labelGroups {
-          position
-          title
-          type
         }
       }
     }
