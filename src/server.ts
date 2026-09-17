@@ -136,29 +136,76 @@ export function createExpressApp(client: TokopediaClient): Express {
   app.use(cors());
   app.use(express.json());
 
-  // Optional API Key validation (as specified in MCP_HOSTING_SPEC.md)
+  // Public Playground rate-limiting tracker (sliding 60-second window per IP)
+  const playgroundLimits = new Map<string, { count: number; resetAt: number }>();
+  const PLAYGROUND_MAX_PER_MINUTE = parseInt(process.env.PLAYGROUND_MAX_PER_MINUTE || '10', 10);
+
+  // Authentication & Public Playground Middleware (complying with MCP_HOSTING_SPEC.md)
   const configuredApiKey = process.env.API_KEY;
-  if (configuredApiKey) {
-    app.use((req: Request, res: Response, next: NextFunction) => {
-      if (req.path === '/health' || req.path === '/' || req.path.endsWith('/health')) {
-        return next();
+  const playgroundEnabled = process.env.PUBLIC_PLAYGROUND_ENABLED !== 'false';
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    // Whitelist public health and discovery routes
+    if (req.path === '/health' || req.path === '/' || req.path.endsWith('/health')) {
+      return next();
+    }
+
+    const apiKey =
+      (req.headers['x-api-key'] as string) ||
+      (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : undefined) ||
+      (req.query.apiKey as string);
+
+    // 1. Valid API Key: Full unthrottled access
+    if (configuredApiKey && apiKey === configuredApiKey) {
+      return next();
+    }
+
+    // 2. Unset API Key on server: Development/Local open access
+    if (!configuredApiKey) {
+      return next();
+    }
+
+    // 3. Public Playground: Strict rate limits (10 req/min/IP) and capped results (5 items)
+    if (playgroundEnabled) {
+      const clientIp =
+        (req.headers['x-real-ip'] as string) ||
+        (req.headers['x-forwarded-for'] as string)?.split(',')[0].trim() ||
+        req.ip ||
+        '127.0.0.1';
+
+      const now = Date.now();
+      let record = playgroundLimits.get(clientIp);
+
+      if (!record || now > record.resetAt) {
+        record = { count: 1, resetAt: now + 60000 };
+        playgroundLimits.set(clientIp, record);
+      } else {
+        record.count++;
       }
 
-      const apiKey =
-        (req.headers['x-api-key'] as string) ||
-        (req.headers['authorization']?.startsWith('Bearer ') ? req.headers['authorization'].slice(7) : undefined) ||
-        (req.query.apiKey as string);
-
-      if (apiKey && apiKey === configuredApiKey) {
-        return next();
+      if (record.count > PLAYGROUND_MAX_PER_MINUTE) {
+        return res.status(429).json({
+          error: 'Public playground rate limit exceeded (max 10 requests per minute).',
+          hint: 'Supply an API Key via "x-api-key" header, "Authorization: Bearer <API_KEY>", or "?apiKey=<API_KEY>" for full quota.',
+        });
       }
 
-      res.status(401).json({
-        error: 'Unauthorized: Valid API Key is required.',
-        hint: 'Supply via "x-api-key" header, "Authorization: Bearer <API_KEY>", or "?apiKey=<API_KEY>" query parameter.',
-      });
+      // Cap pagination limit to 5 items in playground mode
+      if (req.query.limit) {
+        req.query.limit = String(Math.min(parseInt(req.query.limit as string, 10) || 5, 5));
+      }
+
+      res.setHeader('X-Playground-Mode', 'true');
+      res.setHeader('X-Playground-Remaining', String(Math.max(0, PLAYGROUND_MAX_PER_MINUTE - record.count)));
+      return next();
+    }
+
+    // 4. Playground disabled and no valid API Key
+    res.status(401).json({
+      error: 'Unauthorized: A valid API Key is required to access mcp.cuang.dev.',
+      hint: 'Supply via "x-api-key" header, "Authorization: Bearer <API_KEY>", or "?apiKey=<API_KEY>" query parameter.',
     });
-  }
+  });
 
   // Mount REST API endpoints
   app.use(createApiRouter(client));
@@ -189,7 +236,19 @@ export function createExpressApp(client: TokopediaClient): Express {
       transports.delete(transport.sessionId);
     });
 
-    const mcpServer = createMcpServer(client);
+    // Check for user-submitted session cookie on SSE connection (MCP_HOSTING_SPEC.md section 4)
+    const headerCookie = (req.headers['x-tokopedia-cookie'] as string) || undefined;
+    const sessionClient = headerCookie
+      ? new TokopediaClient({
+          cookie: headerCookie,
+          proxyUrl: process.env.HTTPS_PROXY || process.env.HTTP_PROXY,
+          userAgent: process.env.USER_AGENT,
+          requestDelayMs: process.env.REQUEST_DELAY_MS ? parseInt(process.env.REQUEST_DELAY_MS, 10) : undefined,
+          mockOnBlocked: process.env.MOCK_ON_BLOCKED !== 'false',
+        })
+      : client;
+
+    const mcpServer = createMcpServer(sessionClient);
     await mcpServer.connect(transport);
   };
 

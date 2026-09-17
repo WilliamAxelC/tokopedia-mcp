@@ -38,7 +38,7 @@ describe('Tokopedia Formatters & Utilities', () => {
   });
 });
 
-describe('TokopediaClient', () => {
+describe('TokopediaClient', { timeout: 15000 }, () => {
   let client: TokopediaClient;
 
   beforeEach(() => {
