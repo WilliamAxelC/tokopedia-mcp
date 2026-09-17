@@ -17,6 +17,8 @@ services:
         condition: service_started
       shopee-mcp:
         condition: service_started
+      facebook-marketplace-mcp:
+        condition: service_started
     networks:
       - mcp-network
 
@@ -71,6 +73,38 @@ services:
       - CACHE_DEFAULT_TTL=${CACHE_DEFAULT_TTL:-300}
       - CACHE_PRODUCT_TTL=${CACHE_PRODUCT_TTL:-1800}
       - CACHE_CATEGORY_TTL=${CACHE_CATEGORY_TTL:-86400}
+      - REQUEST_DELAY_MS=${REQUEST_DELAY_MS:-400}
+      - MOCK_ON_BLOCKED=${MOCK_ON_BLOCKED:-true}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - mcp-network
+
+  # -----------------------------------------------------------------
+  # Facebook Marketplace MCP Server (from sibling directory)
+  # -----------------------------------------------------------------
+  facebook-marketplace-mcp:
+    build:
+      context: ../facebook-marketplace-mcp
+      dockerfile: Dockerfile
+    container_name: facebook-marketplace-mcp
+    restart: unless-stopped
+    environment:
+      - PORT=3000
+      - HOST=0.0.0.0
+      - NODE_ENV=production
+      - BASE_PATH=/facebook
+      - API_KEY=${API_KEY:-}
+      - FB_COOKIE=${FB_COOKIE:-}
+      - FB_DTSG=${FB_DTSG:-}
+      - DEFAULT_LOCATION=${DEFAULT_LOCATION:-jakarta}
+      - HTTP_PROXY=${HTTP_PROXY:-}
+      - HTTPS_PROXY=${HTTPS_PROXY:-}
       - REQUEST_DELAY_MS=${REQUEST_DELAY_MS:-400}
       - MOCK_ON_BLOCKED=${MOCK_ON_BLOCKED:-true}
       - LOG_LEVEL=${LOG_LEVEL:-info}
