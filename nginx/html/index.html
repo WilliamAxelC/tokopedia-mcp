@@ -1,0 +1,3387 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>mcp.cuang.dev | Model Context Protocol (MCP) Gateway</title>
+  <meta name="description" content="Production MCP gateway and interactive playground for Indonesian E-Commerce (Shopee, Tokopedia, Facebook MP) and Coursera Courseware." />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       PORTFOLIO DESIGN SYSTEM TOKENS - ZEN KOI POND & DAY/NIGHT PONTOON
+       Derived directly from cuang.dev portfolio design architecture
+       ========================================================================== */
+    :root {
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      --font-heading: 'Outfit', var(--font-sans);
+      --font-mono: 'JetBrains Mono', monospace;
+
+      /* Default Dark Mode (Midnight Pond) */
+      --bg-primary: #030d14;
+      --bg-secondary: #061922;
+      --bg-tertiary: #092533;
+      --bg-elevated: rgba(7, 26, 37, 0.72);
+
+      --accent-primary: #38bdf8;
+      --accent-secondary: #fb923c;
+      --accent-tertiary: #2dd4bf;
+      --accent-glow: rgba(56, 189, 248, 0.28);
+
+      --accent-indigo: #818cf8;
+      --accent-purple: #c084fc;
+      --accent-cyan: #2dd4bf;
+      --accent-pink: #f472b6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+
+      /* Specular Glass Tokens */
+      --glass-bg: rgba(6, 22, 32, 0.68);
+      --glass-bg-hover: rgba(10, 32, 46, 0.82);
+      --glass-border: rgba(56, 189, 248, 0.14);
+      --glass-border-hover: rgba(56, 189, 248, 0.38);
+      --glass-blur: blur(24px);
+      --glass-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), 0 0 1px 1px rgba(56, 189, 248, 0.08);
+
+      /* Pontoon Slat Architecture */
+      --pontoon-slat: rgba(12, 32, 44, 0.88);
+      --pontoon-gap: rgba(3, 10, 16, 0.45);
+      --pontoon-border: rgba(56, 189, 248, 0.2);
+
+      --radius-xs: 6px;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 24px;
+      --radius-full: 9999px;
+
+      --transition-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* Daylight Pond Theme (Light Mode) */
+    [data-theme="light"] {
+      --bg-primary: #e6f7fa;
+      --bg-secondary: #d3eff6;
+      --bg-tertiary: #c0e7f1;
+      --bg-elevated: rgba(255, 255, 255, 0.82);
+
+      --accent-primary: #0284c7;
+      --accent-secondary: #ea580c;
+      --accent-tertiary: #0d9488;
+      --accent-glow: rgba(2, 132, 199, 0.2);
+
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+
+      --glass-bg: rgba(255, 255, 255, 0.78);
+      --glass-bg-hover: rgba(255, 255, 255, 0.92);
+      --glass-border: rgba(2, 132, 199, 0.18);
+      --glass-border-hover: rgba(2, 132, 199, 0.42);
+      --glass-shadow: 0 16px 40px -8px rgba(15, 23, 42, 0.1), 0 0 1px 1px rgba(255, 255, 255, 0.8);
+
+      --pontoon-slat: rgba(248, 245, 238, 0.92);
+      --pontoon-gap: rgba(200, 180, 155, 0.35);
+      --pontoon-border: rgba(217, 119, 6, 0.22);
+    }
+
+    /* Reset & Base Setup */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      transition: background-color var(--transition-smooth), color var(--transition-smooth);
+    }
+
+    /* Selection */
+    ::selection {
+      background: rgba(56, 189, 248, 0.3);
+      color: #38bdf8;
+    }
+
+    /* Ambient Floating Glow Blobs */
+    .ambient-glow-mesh {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.25;
+      will-change: transform;
+    }
+
+    .glow-blob-1 {
+      top: -10%;
+      left: 20%;
+      width: 45vw;
+      height: 45vw;
+      max-width: 500px;
+      max-height: 500px;
+      background: var(--accent-primary);
+      animation: floatSlow 22s ease-in-out infinite alternate;
+    }
+
+    .glow-blob-2 {
+      top: 45%;
+      right: -5%;
+      width: 50vw;
+      height: 50vw;
+      max-width: 550px;
+      max-height: 550px;
+      background: var(--accent-secondary);
+      animation: floatSlow 28s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes floatSlow {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(30px, 40px) scale(1.08); }
+      100% { transform: translate(-20px, -30px) scale(0.95); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: var(--radius-full);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-primary);
+    }
+
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-heading);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--text-primary);
+    }
+
+    p {
+      color: var(--text-secondary);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Container Utility */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+      position: relative;
+      width: 100%;
+    }
+
+    @media (max-width: 640px) {
+      .container {
+        padding: 0 1rem;
+      }
+    }
+
+    section.container {
+      padding: 5.5rem 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    section#home.container {
+      padding-top: 0;
+    }
+
+    @media (max-width: 768px) {
+      section.container {
+        padding: 4rem 1rem;
+      }
+    }
+
+    /* Section Header */
+    .section-header {
+      text-align: center;
+      margin-bottom: 3.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .section-header {
+        margin-bottom: 2.25rem;
+      }
+    }
+
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-full);
+      font-size: 0.78rem;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--accent-primary);
+      background: rgba(129, 140, 248, 0.08);
+      border: 1px solid rgba(129, 140, 248, 0.2);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      font-size: clamp(1.85rem, 5vw, 2.75rem);
+      font-weight: 800;
+      background: linear-gradient(135deg, #ffffff 40%, var(--text-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.2;
+    }
+
+    [data-theme="light"] .section-title {
+      background: linear-gradient(135deg, #0f172a 30%, #334155 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .section-subtitle {
+      font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+      color: var(--text-muted);
+      max-width: 680px;
+      margin: 0.65rem auto 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Specular Glass Card */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--glass-shadow);
+      padding: 2rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+    }
+
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+    }
+
+    .glass-card:hover {
+      border-color: var(--glass-border-hover);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.65), 0 0 25px var(--accent-glow);
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      padding: 0.75rem 1.65rem;
+      border-radius: var(--radius-full);
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all var(--transition-smooth);
+      border: none;
+      outline: none;
+      min-height: 44px;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 20px var(--accent-glow);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-glow);
+      filter: brightness(1.1);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-primary);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(10px);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+      color: #ffffff;
+    }
+
+    [data-theme="light"] .btn-secondary {
+      background: rgba(2, 132, 199, 0.06);
+      color: #0f172a;
+      border-color: rgba(2, 132, 199, 0.2);
+    }
+
+    [data-theme="light"] .btn-secondary:hover {
+      background: rgba(2, 132, 199, 0.12);
+      border-color: rgba(2, 132, 199, 0.35);
+      color: #0284c7;
+    }
+
+    /* Floating Island Navbar */
+    .navbar-wrapper {
+      position: fixed;
+      top: 1.25rem;
+      left: 0;
+      right: 0;
+      z-index: 200;
+      display: flex;
+      justify-content: center;
+      padding: 0 1rem;
+      pointer-events: none;
+    }
+
+    .navbar {
+      pointer-events: auto;
+      width: 100%;
+      max-width: 960px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 1.25rem;
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-full);
+      box-shadow: var(--glass-shadow);
+      transition: all var(--transition-smooth);
+    }
+
+    .navbar.scrolled {
+      background: rgba(7, 10, 18, 0.94);
+      border-color: rgba(129, 140, 248, 0.3);
+      box-shadow: 0 20px 50px -5px rgba(0, 0, 0, 0.85), 0 0 25px var(--accent-glow);
+    }
+
+    [data-theme="light"] .navbar {
+      background: rgba(255, 255, 255, 0.82);
+      border-color: rgba(2, 132, 199, 0.18);
+      box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.08), 0 0 1px 1px rgba(255, 255, 255, 0.9);
+    }
+
+    [data-theme="light"] .navbar.scrolled {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: rgba(2, 132, 199, 0.3);
+      box-shadow: 0 20px 40px -6px rgba(15, 23, 42, 0.12);
+    }
+
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .navbar-brand-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--accent-secondary);
+      box-shadow: 0 0 10px var(--accent-secondary);
+      display: inline-block;
+      flex-shrink: 0;
+    }
+
+    .navbar-menu {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      list-style: none;
+    }
+
+    .nav-link {
+      font-family: var(--font-heading);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      padding: 0.45rem 0.95rem;
+      border-radius: var(--radius-full);
+      transition: all var(--transition-fast);
+      cursor: pointer;
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid transparent;
+    }
+
+    .nav-link:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .nav-link.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, rgba(129, 140, 248, 0.2) 0%, rgba(192, 132, 252, 0.2) 100%);
+      border-color: rgba(129, 140, 248, 0.35);
+      font-weight: 600;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    [data-theme="light"] .nav-link {
+      color: #334155;
+    }
+
+    [data-theme="light"] .nav-link:hover {
+      color: #0f172a;
+      background: rgba(2, 132, 199, 0.08);
+    }
+
+    [data-theme="light"] .nav-link.active {
+      color: #0284c7;
+      background: rgba(2, 132, 199, 0.12);
+      border-color: rgba(2, 132, 199, 0.3);
+      font-weight: 700;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      color: var(--text-primary);
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-full);
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    @media (max-width: 860px) {
+      .navbar-menu { display: none; }
+      .mobile-menu-btn { display: flex; }
+    }
+
+    /* Mobile Drawer Overlay */
+    .mobile-nav-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(3, 5, 10, 0.75);
+      backdrop-filter: blur(12px);
+      z-index: 210;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 5rem 1rem 1.5rem;
+    }
+
+    .mobile-nav-backdrop.open {
+      display: flex;
+    }
+
+    .mobile-nav-drawer {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(13, 21, 39, 0.98);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    [data-theme="light"] .mobile-nav-drawer {
+      background: rgba(255, 255, 255, 0.98);
+      border-color: rgba(2, 132, 199, 0.22);
+      box-shadow: 0 25px 60px rgba(15, 23, 42, 0.15);
+    }
+
+    .mobile-nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      margin-bottom: 0.25rem;
+    }
+
+    .mobile-nav-links {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .mobile-nav-link {
+      display: flex;
+      align-items: center;
+      padding: 0.8rem 1rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-family: var(--font-heading);
+      font-size: 1.05rem;
+      font-weight: 600;
+      transition: all var(--transition-fast);
+    }
+
+    .mobile-nav-link:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-primary);
+    }
+
+    /* Hero Section */
+    .hero-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding-top: 7rem;
+      padding-bottom: 3.5rem;
+      min-height: 75vh;
+      justify-content: center;
+      z-index: 1;
+      width: 100%;
+    }
+
+    .hero-status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.45rem 1.15rem;
+      border-radius: var(--radius-full);
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #34d399;
+      font-size: clamp(0.78rem, 2.5vw, 0.85rem);
+      font-weight: 600;
+      margin-bottom: 1.75rem;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10b981;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse-ring 1.8s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .hero-title {
+      font-size: clamp(2.3rem, 6.5vw, 4.2rem);
+      line-height: 1.15;
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      margin-bottom: 1.25rem;
+      background: linear-gradient(135deg, #ffffff 30%, rgba(255, 255, 255, 0.65) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      max-width: 960px;
+    }
+
+    [data-theme="light"] .hero-title {
+      background: linear-gradient(135deg, #091e30 20%, #1e293b 75%, #0284c7 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-tagline {
+      font-size: clamp(1.05rem, 2.8vw, 1.3rem);
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      max-width: 760px;
+    }
+
+    [data-theme="light"] .hero-tagline {
+      color: #334155;
+      font-weight: 600;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 2.25rem;
+      width: 100%;
+    }
+
+    @media (max-width: 640px) {
+      .hero-actions {
+        flex-direction: column;
+        max-width: 340px;
+      }
+      .hero-actions .btn {
+        width: 100%;
+      }
+    }
+
+    .socials-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .social-icon-link {
+      color: var(--text-secondary);
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-full);
+      border: 1px solid var(--glass-border);
+      background: rgba(255, 255, 255, 0.025);
+      flex-shrink: 0;
+    }
+
+    .social-icon-link:hover {
+      color: #ffffff;
+      border-color: var(--accent-primary);
+      background: rgba(129, 140, 248, 0.12);
+      transform: translateY(-3px);
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    /* Recruiter Stats Grid */
+    .recruiter-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      width: 100%;
+      max-width: 1080px;
+      margin-top: 3.25rem;
+      text-align: left;
+    }
+
+    @media (max-width: 960px) {
+      .recruiter-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 560px) {
+      .recruiter-stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .recruiter-stat-card {
+      padding: 1.25rem 1.35rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      border-radius: var(--radius-md);
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      transition: all var(--transition-fast);
+    }
+
+    [data-theme="light"] .recruiter-stat-card {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(2, 132, 199, 0.18);
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+    }
+
+    .recruiter-stat-card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(129, 140, 248, 0.3);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .recruiter-stat-top {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .recruiter-stat-icon-wrap {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-sm);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    [data-theme="light"] .recruiter-stat-icon-wrap {
+      background: rgba(2, 132, 199, 0.08);
+      border-color: rgba(2, 132, 199, 0.2);
+    }
+
+    .recruiter-stat-value {
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+      background: linear-gradient(135deg, #ffffff 40%, rgba(255, 255, 255, 0.7) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    [data-theme="light"] .recruiter-stat-value {
+      background: linear-gradient(135deg, #0f172a 30%, #1e293b 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .recruiter-stat-label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .recruiter-stat-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+    }
+
+    /* Live Status Pill */
+    .live-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.68rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      background: rgba(45, 212, 191, 0.1);
+      color: var(--accent-tertiary);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+      padding: 0.2rem 0.6rem;
+      border-radius: var(--radius-full);
+      letter-spacing: 0.02em;
+    }
+
+    .live-pulse-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--accent-tertiary);
+      box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7);
+      animation: pulse-ring 1.8s infinite;
+    }
+
+    /* Pontoon Slat Aesthetic for Cards */
+    .pontoon-card {
+      position: relative;
+      background: repeating-linear-gradient(
+        180deg,
+        var(--pontoon-slat) 0px,
+        var(--pontoon-slat) 36px,
+        var(--pontoon-gap) 36px,
+        var(--pontoon-gap) 39px
+      );
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--pontoon-border);
+      border-radius: var(--radius-md);
+      box-shadow: var(--glass-shadow);
+      transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+    }
+
+    .pontoon-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent-primary);
+      box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.4), 0 0 15px var(--accent-glow);
+    }
+
+    /* Project / Service Cards */
+    .service-card {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      border-top: 3px solid var(--accent-primary);
+      transition: all var(--transition-smooth);
+    }
+
+    .service-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--glass-border-hover);
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+    }
+
+    [data-theme="light"] .service-card {
+      background: rgba(255, 255, 255, 0.85);
+      border-color: rgba(2, 132, 199, 0.18);
+    }
+
+    /* Playground Inputs & Controls */
+    .glass-input {
+      background: rgba(10, 15, 30, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-primary);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.25rem;
+      font-size: 0.95rem;
+      transition: all var(--transition-fast);
+      outline: none;
+      width: 100%;
+    }
+
+    [data-theme="light"] .glass-input {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(2, 132, 199, 0.25);
+      color: #0f172a;
+    }
+
+    .glass-input:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    /* Service Selector Tabs */
+    .service-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.55rem 1rem;
+      border-radius: var(--radius-full);
+      font-size: 0.82rem;
+      font-weight: 600;
+      font-family: var(--font-heading);
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .service-tab-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .service-tab-btn.active {
+      color: #ffffff;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      border-color: transparent;
+      box-shadow: 0 4px 15px var(--accent-glow);
+    }
+
+    /* Function / Tool Selector Tabs */
+    .function-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.8rem;
+      border-radius: var(--radius-full);
+      font-size: 0.76rem;
+      font-weight: 500;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--glass-border);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      white-space: nowrap;
+    }
+
+    .function-tab-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .function-tab-btn.active {
+      color: #ffffff;
+      background: rgba(56, 189, 248, 0.22);
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+      font-weight: 600;
+    }
+
+    /* Preset Chip */
+    .preset-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .preset-chip:hover {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--accent-primary);
+      border-color: var(--accent-primary);
+    }
+
+    /* Code Block */
+    .code-container {
+      background: #020617;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      position: relative;
+      overflow-x: auto;
+    }
+
+    .code-container pre {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: #38bdf8;
+      line-height: 1.55;
+    }
+
+    /* Floating Zen Controls Bar (Bottom Right) */
+    .zen-controls-container {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 0.6rem;
+      z-index: 190;
+    }
+
+    .zen-hint-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.85rem;
+      border-radius: var(--radius-full);
+      font-size: 0.76rem;
+      color: var(--text-primary);
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+      animation: fadeIn 0.4s ease-out;
+      white-space: nowrap;
+    }
+
+    .zen-hint-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0 0.2rem;
+      transition: color var(--transition-fast);
+    }
+
+    .zen-hint-close:hover {
+      color: var(--accent-secondary);
+    }
+
+    .zen-control-capsule {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.35rem 0.6rem;
+      border-radius: var(--radius-full);
+      background: var(--glass-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .zen-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.35rem 0.65rem;
+      border-radius: var(--radius-full);
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .zen-btn:hover {
+      color: var(--text-primary);
+      background: var(--glass-bg-hover);
+      border-color: var(--glass-border);
+    }
+
+    .zen-btn.active {
+      color: var(--accent-primary);
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    [data-theme="light"] .zen-btn.active {
+      color: var(--accent-primary);
+      background: rgba(2, 132, 199, 0.1);
+      border-color: rgba(2, 132, 199, 0.25);
+    }
+
+    .zen-divider {
+      width: 1px;
+      height: 16px;
+      background: var(--glass-border);
+    }
+
+    .zen-btn-label {
+      font-size: 0.75rem;
+    }
+
+    @media (max-width: 640px) {
+      .zen-controls-container {
+        right: 1.25rem;
+        bottom: 1.25rem;
+      }
+      .zen-hint-pill {
+        display: none;
+      }
+      .zen-btn-label {
+        display: none;
+      }
+      .zen-btn {
+        padding: 0.4rem;
+      }
+    }
+
+    /* Product Grid Cards in Playground */
+    .playground-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .item-card {
+      background: rgba(10, 18, 30, 0.7);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .item-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="light"] .item-card {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(2, 132, 199, 0.18);
+    }
+
+    .item-img-wrap {
+      aspect-ratio: 1 / 1;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 0.75rem;
+      background: #020617;
+      position: relative;
+    }
+
+    .item-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.3s ease;
+    }
+
+    .item-card:hover .item-img {
+      transform: scale(1.05);
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Full-Screen 60FPS Interactive HTML5 Koi Pond Canvas -->
+  <canvas id="koiCanvas" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 0;"></canvas>
+
+  <!-- Ambient Glow Blobs -->
+  <div class="ambient-glow-mesh">
+    <div class="glow-blob glow-blob-1"></div>
+    <div class="glow-blob glow-blob-2"></div>
+  </div>
+
+  <!-- Floating Island Navbar -->
+  <header class="navbar-wrapper">
+    <nav class="navbar" id="navbar">
+      <a href="https://cuang.dev" class="navbar-brand" title="William Axel Cuangdinata Portfolio">
+        <span class="navbar-brand-dot"></span>
+        <span style="font-weight: 800;">mcp.<span style="color: var(--accent-primary);">cuang</span>.dev</span>
+      </a>
+
+      <!-- Desktop Links -->
+      <ul class="navbar-menu">
+        <li><a href="#playground" class="nav-link active">Playground</a></li>
+        <li><a href="#services" class="nav-link">MCP Services</a></li>
+        <li><a href="#connect" class="nav-link">Client Setup</a></li>
+        <li><a href="#architecture" class="nav-link">Architecture</a></li>
+        <li>
+          <a href="https://cuang.dev" target="_blank" rel="noopener noreferrer" class="nav-link" style="color: var(--accent-secondary); font-weight: 600;">
+            Portfolio ↗
+          </a>
+        </li>
+      </ul>
+
+      <!-- Mobile Menu Button -->
+      <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </nav>
+  </header>
+
+  <!-- Mobile Drawer Overlay -->
+  <div class="mobile-nav-backdrop" id="mobileNavBackdrop">
+    <div class="mobile-nav-drawer">
+      <div class="mobile-nav-header">
+        <span style="font-size: 0.8rem; font-weight: 700; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase;">Navigation</span>
+        <button id="mobileNavClose" style="background: transparent; border: none; color: var(--text-secondary); cursor: pointer; padding: 0.4rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div class="mobile-nav-links">
+        <a href="#playground" class="mobile-nav-link" onclick="closeMobileMenu()">Playground</a>
+        <a href="#services" class="mobile-nav-link" onclick="closeMobileMenu()">MCP Services</a>
+        <a href="#connect" class="mobile-nav-link" onclick="closeMobileMenu()">Client Setup</a>
+        <a href="#architecture" class="mobile-nav-link" onclick="closeMobileMenu()">Architecture</a>
+        <a href="https://cuang.dev" target="_blank" class="mobile-nav-link" style="color: var(--accent-secondary);" onclick="closeMobileMenu()">Personal Portfolio ↗</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section id="home" class="container" style="padding-top: calc(var(--nav-height) + 2rem); padding-bottom: 2rem;">
+    <div class="hero-content" style="max-width: 820px; margin: 0 auto; text-align: center;">
+      
+      <!-- Live Production Status Badge -->
+      <div class="hero-status-badge">
+        <span class="pulse-dot"></span>
+        <span>PRODUCTION MCP GATEWAY · 4 LIVE SERVICES</span>
+      </div>
+
+      <!-- Hero Title -->
+      <h1 class="hero-title" style="font-size: clamp(2.2rem, 5vw, 3.4rem); margin-bottom: 1rem; letter-spacing: -0.03em;">
+        Model Context Protocol Gateway
+      </h1>
+
+      <!-- Hero Tagline -->
+      <p class="hero-tagline" style="font-size: 1.05rem; margin: 0 auto 1.75rem auto; max-width: 680px; color: var(--text-secondary); line-height: 1.6;">
+        Real-time tool interfaces for Indonesian e-commerce intelligence and academic courseware semantics, designed for Claude Desktop, Cursor, and autonomous AI agents.
+      </p>
+
+      <!-- Action Buttons -->
+      <div class="hero-actions" style="justify-content: center; margin-bottom: 1.5rem;">
+        <a href="#playground" class="btn btn-primary">
+          <span>Interactive Playground</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+        </a>
+        <a href="#connect" class="btn btn-secondary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+          <span>Claude & Cursor Setup</span>
+        </a>
+        <a href="https://cuang.dev" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" title="View William Axel Cuangdinata's Portfolio">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+          <span>cuang.dev ↗</span>
+        </a>
+      </div>
+
+      <!-- Quick Platform Tags -->
+      <div class="socials-banner" style="justify-content: center; margin-bottom: 0.5rem;">
+        <a href="https://github.com/WilliamAxelC" target="_blank" rel="noopener noreferrer" class="social-icon-link" title="GitHub Profile">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+        </a>
+        <div class="social-icon-link" style="cursor: default; width: auto; padding: 0 1rem; border-radius: 30px; gap: 0.4rem;" title="Homelab Edge Node">
+          <span class="live-pulse-dot"></span>
+          <span style="font-size: 0.82rem; color: var(--text-secondary); font-family: var(--font-mono);">Proxmox LXC Cluster</span>
+        </div>
+        <div class="social-icon-link" style="cursor: default; width: auto; padding: 0 1rem; border-radius: 30px; gap: 0.4rem;">
+          <span style="font-size: 0.82rem; color: var(--text-secondary); font-family: var(--font-mono);">mcp.cuang.dev</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Playground Section -->
+  <section id="playground" class="container" style="padding-top: 1rem;">
+    <div class="section-header" style="margin-bottom: 1.5rem;">
+      <div class="section-badge">INTERACTIVE PLAYGROUND</div>
+      <h2 class="section-title">Live Tool Explorer</h2>
+      <p class="section-subtitle">
+        Test all production MCP functions in real time with live parameters, auto-fill presets, and visual card inspectors.
+      </p>
+    </div>
+
+    <!-- Playground Main Glass Card -->
+    <div class="glass-card" style="padding: 2rem; max-width: 1100px; margin: 0 auto;">
+      
+      <!-- LINE 1: API Key & Quota on their OWN line -->
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--glass-border); flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1; max-width: 440px; min-width: 240px;">
+          <input type="password" id="apiKeyInput" placeholder="API Key (Unlocks full access)" class="glass-input" style="width: 100%; padding: 0.5rem 0.85rem; font-size: 0.82rem; font-family: var(--font-mono);">
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.45rem 0.9rem; border-radius: var(--radius-full); background: rgba(255, 255, 255, 0.04); border: 1px solid var(--glass-border); font-size: 0.78rem; font-family: var(--font-mono);">
+          <span style="color: var(--text-muted);">Quota:</span>
+          <span id="quotaCount" style="color: var(--accent-primary); font-weight: 700;">10/10 left</span>
+        </div>
+      </div>
+
+      <!-- LINE 2: Service Selector (Below Line 1) -->
+      <div style="padding-top: 1.25rem; padding-bottom: 0.85rem;">
+        <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
+          Select Service
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;" id="serviceTabs">
+          <button type="button" onclick="setService('shopee')" id="tab-shopee" class="service-tab-btn active">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <span>Shopee ID</span>
+          </button>
+          <button type="button" onclick="setService('tokopedia')" id="tab-tokopedia" class="service-tab-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            <span>Tokopedia</span>
+          </button>
+          <button type="button" onclick="setService('facebook')" id="tab-facebook" class="service-tab-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+            <span>Facebook MP</span>
+          </button>
+          <button type="button" onclick="setService('coursera')" id="tab-coursera" class="service-tab-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
+            <span>Coursera</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- LINE 3: Function / Tool Selector for active service -->
+      <div style="padding-bottom: 1.25rem; border-bottom: 1px solid var(--glass-border);">
+        <div style="font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem; letter-spacing: 0.05em;">
+          Select Function / Tool
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;" id="functionTabs">
+          <!-- Populated dynamically via JS -->
+        </div>
+        <div id="functionDesc" style="margin-top: 0.6rem; font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">
+          <!-- Description of selected tool -->
+        </div>
+      </div>
+
+      <!-- LINE 4: Dynamic Input Fields & Presets -->
+      <div style="padding-top: 1.25rem;">
+        <form id="toolForm" onsubmit="handleExecute(event)" style="display: flex; flex-direction: column; gap: 1rem;">
+          <div id="dynamicInputsContainer" style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: flex-end;">
+            <!-- Inputs populated dynamically -->
+          </div>
+
+          <!-- Presets Strip -->
+          <div id="presetContainer" style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; font-size: 0.78rem; color: var(--text-muted);">
+            <!-- Populated via JS -->
+          </div>
+        </form>
+      </div>
+
+      <!-- Status Bar -->
+      <div id="statusBar" style="display: none; margin-top: 1.25rem; padding: 0.75rem 1rem; border-radius: var(--radius-sm); font-size: 0.82rem; font-family: var(--font-mono); justify-content: space-between; align-items: center;"></div>
+
+      <!-- Results View Switcher -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--glass-border);">
+        <div style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);" id="resultsHeader">
+          Execution Results
+        </div>
+        <div style="display: flex; gap: 0.35rem; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); padding: 0.25rem; border-radius: var(--radius-full);">
+          <button onclick="setViewMode('cards')" id="btnViewCards" class="btn" style="min-height: 30px; padding: 0.25rem 0.85rem; font-size: 0.75rem; border-radius: var(--radius-full); background: rgba(56, 189, 248, 0.2); color: var(--accent-primary);">Visual Cards</button>
+          <button onclick="setViewMode('json')" id="btnViewJson" class="btn" style="min-height: 30px; padding: 0.25rem 0.85rem; font-size: 0.75rem; border-radius: var(--radius-full); background: transparent; color: var(--text-muted);">Raw JSON</button>
+        </div>
+      </div>
+
+      <!-- Visual Cards Container -->
+      <div id="cardsContainer" class="playground-grid" style="margin-top: 1.25rem;">
+        <div style="grid-column: 1 / -1; padding: 3rem 1rem; text-align: center; color: var(--text-muted); font-family: var(--font-mono); font-size: 0.88rem;">
+          Select a tool and click "Execute" or pick a preset to stream live data.
+        </div>
+      </div>
+
+      <!-- Raw JSON Container -->
+      <div id="jsonContainer" class="code-container" style="display: none; margin-top: 1.25rem; max-height: 450px; overflow: auto;">
+        <pre><code id="jsonOutput">// JSON response will appear here...</code></pre>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Production Services Section -->
+  <section id="services" class="container">
+    <div class="section-header">
+      <div class="section-badge">MICROSERVICES SUITE</div>
+      <h2 class="section-title">Production MCP Endpoints</h2>
+      <p class="section-subtitle">
+        Unified reverse-proxy routes mapped to isolated Docker containers running official Model Context Protocol standards.
+      </p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+      
+      <!-- 1. Shopee Indonesia MCP -->
+      <div class="service-card glass-card">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.25); display: flex; align-items: center; justify-content: center; color: var(--accent-primary);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+              </div>
+              <h3 style="font-size: 1.2rem;">Shopee Indonesia</h3>
+            </div>
+            <span class="live-status-pill"><span class="live-pulse-dot"></span> LIVE</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Full-featured e-commerce tool suite for catalog search, official store verification, item reviews, trending terms, and flash deals.
+          </p>
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: var(--radius-xs); border: 1px solid var(--glass-border); color: var(--accent-primary); margin-bottom: 1rem;">
+            Route: /shopee/* &middot; 8 MCP Tools &middot; Stdio + SSE
+          </div>
+        </div>
+        <div style="border-top: 1px solid var(--glass-border); padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary);">
+          <span>Tools: search, reviews, flash, details</span>
+          <button onclick="setService('shopee'); document.getElementById('playground').scrollIntoView({behavior: 'smooth'})" class="btn btn-secondary" style="min-height: 32px; padding: 0.2rem 0.75rem; font-size: 0.78rem;">Try in Playground</button>
+        </div>
+      </div>
+
+      <!-- 2. Tokopedia MCP -->
+      <div class="service-card glass-card">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45, 212, 191, 0.25); display: flex; align-items: center; justify-content: center; color: var(--accent-tertiary);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              </div>
+              <h3 style="font-size: 1.2rem;">Tokopedia MCP</h3>
+            </div>
+            <span class="live-status-pill"><span class="live-pulse-dot"></span> LIVE</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Tokopedia GraphQL merchant search, product catalog query, and deep-link product resolvers for conversational agents.
+          </p>
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: var(--radius-xs); border: 1px solid var(--glass-border); color: var(--accent-tertiary); margin-bottom: 1rem;">
+            Route: /tokopedia/* &middot; 4 MCP Tools &middot; Stdio + SSE
+          </div>
+        </div>
+        <div style="border-top: 1px solid var(--glass-border); padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary);">
+          <span>Tools: search, details, merchant</span>
+          <button onclick="setService('tokopedia'); document.getElementById('playground').scrollIntoView({behavior: 'smooth'})" class="btn btn-secondary" style="min-height: 32px; padding: 0.2rem 0.75rem; font-size: 0.78rem;">Try in Playground</button>
+        </div>
+      </div>
+
+      <!-- 3. Facebook Marketplace MCP -->
+      <div class="service-card glass-card">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: rgba(129, 140, 248, 0.1); border: 1px solid rgba(129, 140, 248, 0.25); display: flex; align-items: center; justify-content: center; color: var(--accent-indigo);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg>
+              </div>
+              <h3 style="font-size: 1.2rem;">Facebook Marketplace</h3>
+            </div>
+            <span class="live-status-pill"><span class="live-pulse-dot"></span> LIVE</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Hyperlocal community marketplace search for vehicles, furniture, electronics, and peer-to-peer Indonesian listings.
+          </p>
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: var(--radius-xs); border: 1px solid var(--glass-border); color: var(--accent-indigo); margin-bottom: 1rem;">
+            Route: /facebook/* &middot; 4 MCP Tools &middot; Stdio + SSE
+          </div>
+        </div>
+        <div style="border-top: 1px solid var(--glass-border); padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary);">
+          <span>Tools: search, nearby, item_detail</span>
+          <button onclick="setService('facebook'); document.getElementById('playground').scrollIntoView({behavior: 'smooth'})" class="btn btn-secondary" style="min-height: 32px; padding: 0.2rem 0.75rem; font-size: 0.78rem;">Try in Playground</button>
+        </div>
+      </div>
+
+      <!-- 4. Coursera Courseware MCP -->
+      <div class="service-card glass-card">
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.6rem;">
+              <div style="width: 32px; height: 32px; border-radius: var(--radius-sm); background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); display: flex; align-items: center; justify-content: center; color: var(--accent-amber);">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5"/></svg>
+              </div>
+              <h3 style="font-size: 1.2rem;">Coursera Courseware</h3>
+            </div>
+            <span class="live-status-pill"><span class="live-pulse-dot"></span> LIVE</span>
+          </div>
+          <p style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">
+            Course structure extractor, syllabus analyzer, lecture transcript scraper, and reading content exporter for AI synthesis.
+          </p>
+          <div style="font-family: var(--font-mono); font-size: 0.75rem; background: rgba(0,0,0,0.3); padding: 0.5rem 0.75rem; border-radius: var(--radius-xs); border: 1px solid var(--glass-border); color: var(--accent-amber); margin-bottom: 1rem;">
+            Route: /coursera/* &middot; 5 MCP Tools &middot; Stdio + SSE
+          </div>
+        </div>
+        <div style="border-top: 1px solid var(--glass-border); padding-top: 0.75rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: var(--text-secondary);">
+          <span>Tools: outline, transcript, resources</span>
+          <button onclick="setService('coursera'); document.getElementById('playground').scrollIntoView({behavior: 'smooth'})" class="btn btn-secondary" style="min-height: 32px; padding: 0.2rem 0.75rem; font-size: 0.78rem;">Try in Playground</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Client Setup Section (NPM & Stdio Only) -->
+  <section id="connect" class="container">
+    <div class="section-header">
+      <div class="section-badge">INTEGRATION</div>
+      <h2 class="section-title">Client Setup (Claude & Cursor)</h2>
+      <p class="section-subtitle">
+        Connect Claude Desktop or Cursor directly to the official MCP tools via npm.
+      </p>
+    </div>
+
+    <div class="glass-card" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 1.2rem;">⚙️</span>
+          <span style="font-family: var(--font-mono); font-size: 0.85rem; font-weight: 600; color: var(--accent-primary);">claude_desktop_config.json</span>
+        </div>
+        <button onclick="copyConfig()" id="copyBtn" class="btn btn-secondary" style="min-height: 32px; padding: 0.25rem 0.85rem; font-size: 0.78rem;">
+          Copy JSON
+        </button>
+      </div>
+
+      <div class="code-container">
+        <pre><code id="claudeConfig">{
+  "mcpServers": {
+    "shopee-indonesia": {
+      "command": "npx",
+      "args": ["-y", "shopee-indonesia-mcp", "--stdio"]
+    },
+    "tokopedia": {
+      "command": "npx",
+      "args": ["-y", "tokopedia-mcp", "--stdio"]
+    },
+    "facebook-marketplace": {
+      "command": "npx",
+      "args": ["-y", "facebook-marketplace-mcp", "--stdio"]
+    },
+    "coursera": {
+      "command": "npx",
+      "args": ["-y", "coursera-mcp-server", "--stdio"]
+    }
+  }
+}</code></pre>
+      </div>
+
+      <div style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--text-muted); line-height: 1.6;">
+        <p>
+          📦 <strong>Standard npm execution:</strong> Claude Desktop and Cursor execute the packages directly via <code>npx</code> with standard input/output (stdio) transports for fast, local-speed tool execution.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Architecture Overview Section -->
+  <section id="architecture" class="container">
+    <div class="section-header">
+      <div class="section-badge">INFRASTRUCTURE</div>
+      <h2 class="section-title">Gateway Architecture</h2>
+      <p class="section-subtitle">
+        Multi-tenant orchestration running in Proxmox LXC with Cloudflare Zero Trust tunnel protection.
+      </p>
+    </div>
+
+    <div class="glass-card" style="max-width: 900px; margin: 0 auto; padding: 2rem;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem;">
+        <div>
+          <h4 style="color: var(--accent-primary); font-size: 1rem; margin-bottom: 0.5rem;">🌐 Edge Tunnel & SSL</h4>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+            All inbound traffic on <code>mcp.cuang.dev</code> is routed through Cloudflare's edge network via an encrypted tunnel directly into the Docker bridge network.
+          </p>
+        </div>
+        <div>
+          <h4 style="color: var(--accent-tertiary); font-size: 1rem; margin-bottom: 0.5rem;">⚖️ Nginx Reverse Proxy</h4>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+            A unified Nginx container exposes HTTP/1.1 chunked streaming and Server-Sent Events (SSE) buffering disabled for real-time model communication.
+          </p>
+        </div>
+        <div>
+          <h4 style="color: var(--accent-secondary); font-size: 1rem; margin-bottom: 0.5rem;">🛡️ Rate Limiting & Security</h4>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6;">
+            In-memory sliding window rate limiting and optional API key authentication guarantee high availability across microservices.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Zen Minimalist Footer -->
+  <footer style="border-top: 1px solid var(--glass-border); padding: 3rem 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted); position: relative; z-index: 1;">
+    <div class="container">
+      <p style="margin-bottom: 0.5rem;">
+        &copy; 2026 <strong>William Axel Cuangdinata</strong> &middot; Agentic AI Engineer & Infrastructure Architect
+      </p>
+      <p style="font-family: var(--font-mono); font-size: 0.75rem;">
+        Hosted on Proxmox VE &middot; Docker Compose &middot; Cloudflare Tunnel &middot; <a href="https://cuang.dev" target="_blank" style="color: var(--accent-primary);">cuang.dev</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Floating Zen Controls Bar (Bottom Right) -->
+  <div class="zen-controls-container">
+    <!-- Interactive Hint Pill -->
+    <div class="zen-hint-pill" id="zenHintPill">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--accent-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      <span>
+        <strong>Left-Click:</strong> Ripple · <strong>Right-Click:</strong> Feed Koi
+      </span>
+      <button onclick="dismissHint()" class="zen-hint-close" aria-label="Dismiss hint">×</button>
+    </div>
+
+    <!-- Capsule with Day/Night & Koi Toggle -->
+    <div class="zen-control-capsule">
+      <button onclick="toggleTheme()" class="zen-btn" id="themeBtn" title="Toggle daylight/midnight pond theme">
+        <span id="themeIcon" style="display: inline-flex; align-items: center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </span>
+        <span class="zen-btn-label" id="themeLabel">Day</span>
+      </button>
+
+      <div class="zen-divider"></div>
+
+      <button onclick="toggleKoi()" class="zen-btn active" id="koiBtn" title="Toggle interactive Koi fish">
+        <span id="koiIcon" style="display: inline-flex; align-items: center; color: var(--accent-secondary);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-3.44 6-7 6s-7.56-2.54-8.5-6Z"/><path d="M18 12v.5"/><path d="M16 17.93a9.77 9.77 0 0 1 0-11.86"/><path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33"/></svg>
+        </span>
+        <span class="zen-btn-label" id="koiLabel">Koi On</span>
+      </button>
+    </div>
+  </div>
+
+  <style>
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+
+  <!-- Full Koi Pond Canvas Simulation & MCP Client Script -->
+  <script>
+    /* ==========================================================================
+       1. INTERACTIVE ZEN KOI POND ENGINE (Canvas2D)
+       Faithfully ported from William Axel's cuang.dev KoiPond.tsx
+       ========================================================================== */
+    const canvas = document.getElementById('koiCanvas');
+    const ctx = canvas.getContext('2d', { alpha: true });
+
+    let koiEnabled = true;
+    let theme = document.documentElement.getAttribute('data-theme') || 'dark';
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+    let scrollY = window.scrollY;
+    let pageHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, window.innerHeight * 2.5);
+
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      pageHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, window.innerHeight * 2.5);
+      initLilyPads(width);
+      if (fishList.length === 0) initFish(width);
+    });
+
+    window.addEventListener('scroll', () => {
+      scrollY = window.scrollY;
+      pageHeight = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, window.innerHeight * 2.5);
+    }, { passive: true });
+
+    // Pectoral Fin Drawing
+    function drawDemonisPectoralFin(ctx, length, width, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(length * 0.35, width * 0.95, length * 0.75, width * 1.1, length, width * 0.45);
+      ctx.quadraticCurveTo(length * 0.5, width * 0.15, 0, 0);
+      ctx.fillStyle = fill;
+      ctx.fill();
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 0.65;
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.quadraticCurveTo(length * 0.45, width * 0.55, length * 0.85, width * 0.4);
+      ctx.stroke();
+    }
+
+    // Anatomical Koi Drawing Function
+    function drawDemonisKoi(ctx, fish, isDark) {
+      const s = fish.size;
+      const spine = fish.spine;
+      const n = spine.length;
+      if (n < 8) return;
+
+      const bodyRadii = [
+        6.0 * s, 9.5 * s, 12.5 * s, 13.8 * s, 14.0 * s,
+        13.2 * s, 11.5 * s, 9.2 * s, 7.0 * s, 5.0 * s,
+        3.5 * s, 2.4 * s, 1.6 * s, 1.0 * s
+      ];
+
+      const leftPts = [];
+      const rightPts = [];
+
+      for (let i = 0; i < n; i++) {
+        const joint = spine[i];
+        const r = bodyRadii[i] || 2;
+        const perp = joint.angle + Math.PI / 2;
+
+        leftPts.push({ x: joint.x + Math.cos(perp) * r, y: joint.y + Math.sin(perp) * r });
+        rightPts.push({ x: joint.x - Math.cos(perp) * r, y: joint.y - Math.sin(perp) * r });
+      }
+
+      // 1. Soft Bed Shadow
+      const shadowOff = isDark ? 15 * s : 22 * s;
+      ctx.save();
+      ctx.globalAlpha = isDark ? 0.28 : 0.09;
+      ctx.beginPath();
+      for (let i = 0; i < n; i++) {
+        const joint = spine[i];
+        const r = bodyRadii[i] || 2;
+        if (i === 0) ctx.moveTo(joint.x + shadowOff + r, joint.y + shadowOff);
+        ctx.arc(joint.x + shadowOff, joint.y + shadowOff, r * 1.05, 0, Math.PI * 2);
+      }
+      ctx.fillStyle = '#000000';
+      ctx.fill();
+      ctx.restore();
+
+      // 2. Translucent Pectoral Fins (Joint 2)
+      const finFlutter = Math.sin(fish.swimPhase * 0.9) * 0.12;
+      const finAlpha = isDark ? 0.45 : 0.65;
+      const finFill = isDark ? 'rgba(255, 255, 255, 0.42)' : 'rgba(255, 255, 255, 0.72)';
+      const finStroke = isDark ? 'rgba(255, 255, 255, 0.55)' : 'rgba(255, 255, 255, 0.85)';
+
+      ctx.save();
+      ctx.globalAlpha = finAlpha;
+      ctx.translate(leftPts[2].x, leftPts[2].y);
+      ctx.rotate(spine[2].angle - Math.PI / 2.6 + finFlutter);
+      drawDemonisPectoralFin(ctx, 16 * s, 8.5 * s, finFill, finStroke);
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = finAlpha;
+      ctx.translate(rightPts[2].x, rightPts[2].y);
+      ctx.rotate(spine[2].angle + Math.PI / 2.6 - finFlutter);
+      drawDemonisPectoralFin(ctx, 16 * s, -8.5 * s, finFill, finStroke);
+      ctx.restore();
+
+      // 3. Pelvic Fins (Joint 6)
+      ctx.save();
+      ctx.globalAlpha = finAlpha * 0.8;
+      ctx.translate(leftPts[6].x, leftPts[6].y);
+      ctx.rotate(spine[6].angle - Math.PI / 3.0 + finFlutter * 0.5);
+      drawDemonisPectoralFin(ctx, 9 * s, 4.5 * s, finFill, finStroke);
+      ctx.restore();
+
+      ctx.save();
+      ctx.globalAlpha = finAlpha * 0.8;
+      ctx.translate(rightPts[6].x, rightPts[6].y);
+      ctx.rotate(spine[6].angle + Math.PI / 3.0 - finFlutter * 0.5);
+      drawDemonisPectoralFin(ctx, 9 * s, -4.5 * s, finFill, finStroke);
+      ctx.restore();
+
+      // 4. Elegant Fan-like Caudal Tail Fin (Joint 13)
+      const tailTip = spine[n - 1];
+      const tailAngle = tailTip.angle;
+
+      ctx.save();
+      ctx.translate(tailTip.x, tailTip.y);
+      ctx.rotate(tailAngle + Math.PI);
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(10 * s, -14 * s, 24 * s, -18 * s, 34 * s, -8 * s);
+      ctx.bezierCurveTo(24 * s, -3 * s, 24 * s, 3 * s, 34 * s, 8 * s);
+      ctx.bezierCurveTo(24 * s, 18 * s, 10 * s, 14 * s, 0, 0);
+
+      const tailGrad = ctx.createLinearGradient(0, 0, 34 * s, 0);
+      if (fish.pattern === 'ogon') {
+        tailGrad.addColorStop(0, '#f59e0b');
+        tailGrad.addColorStop(0.6, 'rgba(254, 240, 138, 0.45)');
+        tailGrad.addColorStop(1, 'rgba(254, 240, 138, 0.08)');
+      } else {
+        tailGrad.addColorStop(0, fish.colorPattern);
+        tailGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.65)');
+        tailGrad.addColorStop(1, 'rgba(255, 255, 255, 0.08)');
+      }
+      ctx.fillStyle = tailGrad;
+      ctx.fill();
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(234, 88, 12, 0.25)';
+      ctx.lineWidth = 0.6;
+      ctx.stroke();
+
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.22)' : 'rgba(255, 255, 255, 0.48)';
+      ctx.lineWidth = 0.5;
+      for (let r = -3; r <= 3; r++) {
+        ctx.beginPath();
+        ctx.moveTo(2 * s, 0);
+        ctx.quadraticCurveTo(16 * s, r * 2.8 * s, 30 * s, r * 1.8 * s);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 5. Main Smooth Spline Body Hull
+      ctx.beginPath();
+      ctx.moveTo(leftPts[0].x, leftPts[0].y);
+
+      for (let i = 0; i < n - 1; i++) {
+        const p1 = leftPts[i];
+        const p2 = leftPts[i + 1];
+        ctx.quadraticCurveTo(p1.x, p1.y, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+      }
+      ctx.lineTo(leftPts[n - 1].x, leftPts[n - 1].y);
+      ctx.lineTo(tailTip.x, tailTip.y);
+      ctx.lineTo(rightPts[n - 1].x, rightPts[n - 1].y);
+
+      for (let i = n - 1; i > 0; i--) {
+        const p1 = rightPts[i];
+        const p2 = rightPts[i - 1];
+        ctx.quadraticCurveTo(p1.x, p1.y, (p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+      }
+      ctx.lineTo(rightPts[0].x, rightPts[0].y);
+
+      const snout = spine[0];
+      ctx.quadraticCurveTo(
+        snout.x + Math.cos(snout.angle) * (5.5 * s),
+        snout.y + Math.sin(snout.angle) * (5.5 * s),
+        leftPts[0].x,
+        leftPts[0].y
+      );
+      ctx.closePath();
+
+      const bodyGrad = ctx.createLinearGradient(snout.x, snout.y, tailTip.x, tailTip.y);
+      if (fish.pattern === 'ogon') {
+        bodyGrad.addColorStop(0, '#fef08a');
+        bodyGrad.addColorStop(0.5, '#f59e0b');
+        bodyGrad.addColorStop(1, '#b45309');
+      } else if (fish.pattern === 'asagi') {
+        bodyGrad.addColorStop(0, '#e2e8f0');
+        bodyGrad.addColorStop(0.5, '#94a3b8');
+        bodyGrad.addColorStop(1, '#475569');
+      } else if (fish.pattern === 'showa') {
+        bodyGrad.addColorStop(0, '#0f172a');
+        bodyGrad.addColorStop(0.5, '#1e293b');
+        bodyGrad.addColorStop(1, '#0f172a');
+      } else {
+        bodyGrad.addColorStop(0, '#ffffff');
+        bodyGrad.addColorStop(0.6, '#f8fafc');
+        bodyGrad.addColorStop(1, '#e2e8f0');
+      }
+      ctx.fillStyle = bodyGrad;
+      ctx.fill();
+      ctx.strokeStyle = isDark ? 'rgba(0, 0, 0, 0.35)' : 'rgba(100, 116, 139, 0.18)';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+
+      // 6. Distinct Authentic Koi Markings
+      if (fish.pattern === 'kohaku' || fish.pattern === 'sanke' || fish.pattern === 'asagi' || fish.pattern === 'showa') {
+        ctx.fillStyle = fish.colorPattern;
+        const p1 = spine[2];
+        const p3 = spine[5];
+        const p5 = spine[8];
+
+        ctx.beginPath();
+        ctx.ellipse(p1.x, p1.y, bodyRadii[2] * 0.82, bodyRadii[2] * 0.62, p1.angle, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.ellipse(p3.x, p3.y, bodyRadii[5] * 0.75, bodyRadii[5] * 0.54, p3.angle + 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.ellipse(p5.x, p5.y, bodyRadii[8] * 0.70, bodyRadii[8] * 0.46, p5.angle - 0.15, 0, Math.PI * 2);
+        ctx.fill();
+
+        if (fish.pattern === 'sanke' || fish.pattern === 'showa') {
+          ctx.fillStyle = fish.pattern === 'showa' ? '#ffffff' : fish.colorBlack;
+          const p2 = spine[3];
+          const p4 = spine[6];
+
+          ctx.beginPath();
+          ctx.arc(p2.x + Math.cos(p2.angle + 1.2) * (bodyRadii[3] * 0.45), p2.y + Math.sin(p2.angle + 1.2) * (bodyRadii[3] * 0.45), 3.2 * s, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(p4.x - Math.cos(p4.angle + 1.2) * (bodyRadii[6] * 0.38), p4.y - Math.sin(p4.angle + 1.2) * (bodyRadii[6] * 0.38), 2.8 * s, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      } else if (fish.pattern === 'tancho') {
+        ctx.fillStyle = '#dc2626';
+        const crown = spine[1];
+        ctx.beginPath();
+        ctx.arc(crown.x, crown.y, 5.2 * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // 7. Eyes
+      const head = spine[1];
+      const eyeOffset = 6.2 * s;
+      const eyePerp = head.angle + Math.PI / 2;
+      const leftEyeX = head.x + Math.cos(eyePerp) * eyeOffset + Math.cos(head.angle) * (2 * s);
+      const leftEyeY = head.y + Math.sin(eyePerp) * eyeOffset + Math.sin(head.angle) * (2 * s);
+      const rightEyeX = head.x - Math.cos(eyePerp) * eyeOffset + Math.cos(head.angle) * (2 * s);
+      const rightEyeY = head.y - Math.sin(eyePerp) * eyeOffset + Math.sin(head.angle) * (2 * s);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.beginPath();
+      ctx.arc(leftEyeX, leftEyeY, 1.4 * s, 0, Math.PI * 2);
+      ctx.arc(rightEyeX, rightEyeY, 1.4 * s, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.arc(leftEyeX - 0.3, leftEyeY - 0.3, 0.45 * s, 0, Math.PI * 2);
+      ctx.arc(rightEyeX - 0.3, rightEyeY - 0.3, 0.45 * s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Lily Pads & Flower Drawing
+    function drawLilyPads(ctx, pads, time, isDark, scrollY, viewH) {
+      pads.forEach(pad => {
+        const driftX = Math.sin(time * 0.2 + pad.bobPhase) * 6;
+        const bobY = Math.sin(time * 0.3 + pad.bobPhase * 1.2) * 3.5;
+        const rotDrift = Math.sin(time * 0.1 + pad.bobPhase * 0.7) * 0.05;
+
+        const x = pad.x + driftX;
+        const y = pad.y + bobY;
+        const r = pad.radius;
+
+        const screenY = y - scrollY;
+        if (screenY < -r * 2 || screenY > viewH + r * 2) return;
+
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(pad.rotation + rotDrift);
+
+        // Soft Bed Shadow
+        ctx.beginPath();
+        ctx.ellipse(7, 11, r * 1.02, r * 0.95, 0, 0, Math.PI * 2);
+        ctx.fillStyle = isDark ? 'rgba(0, 0, 0, 0.35)' : 'rgba(15, 23, 42, 0.11)';
+        ctx.fill();
+
+        // Lily Pad V-Notch
+        ctx.beginPath();
+        const startAngle = pad.notchAngle + pad.notchWidth;
+        const endAngle = pad.notchAngle + Math.PI * 2 - pad.notchWidth;
+        ctx.arc(0, 0, r, startAngle, endAngle, false);
+        ctx.lineTo(0, 0);
+        ctx.closePath();
+
+        const padGrad = ctx.createRadialGradient(0, 0, r * 0.15, 0, 0, r);
+        if (isDark) {
+          padGrad.addColorStop(0, '#065f46');
+          padGrad.addColorStop(0.7, '#047857');
+          padGrad.addColorStop(1, '#064e3b');
+        } else {
+          padGrad.addColorStop(0, '#34d399');
+          padGrad.addColorStop(0.7, '#10b981');
+          padGrad.addColorStop(1, '#059669');
+        }
+        ctx.fillStyle = padGrad;
+        ctx.fill();
+
+        ctx.strokeStyle = isDark ? 'rgba(52, 211, 153, 0.35)' : 'rgba(255, 255, 255, 0.55)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // Veins
+        ctx.strokeStyle = isDark ? 'rgba(5, 150, 105, 0.35)' : 'rgba(6, 95, 70, 0.22)';
+        ctx.lineWidth = 0.75;
+        for (let v = 0; v < 7; v++) {
+          const vAngle = startAngle + ((endAngle - startAngle) / 8) * (v + 1);
+          ctx.beginPath();
+          ctx.moveTo(0, 0);
+          ctx.lineTo(Math.cos(vAngle) * (r * 0.88), Math.sin(vAngle) * (r * 0.88));
+          ctx.stroke();
+        }
+
+        // Water droplets
+        pad.drops.forEach(drop => {
+          ctx.beginPath();
+          ctx.arc(drop.rX, drop.rY, drop.r, 0, Math.PI * 2);
+          ctx.fillStyle = isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(255, 255, 255, 0.72)';
+          ctx.fill();
+          ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.8)' : 'rgba(255, 255, 255, 0.95)';
+          ctx.lineWidth = 0.5;
+          ctx.stroke();
+        });
+
+        // Blooming Flower
+        if (pad.hasFlower) {
+          ctx.save();
+          ctx.translate(r * 0.22, r * 0.16);
+
+          const petalCount = 8;
+          for (let p = 0; p < petalCount; p++) {
+            const pAngle = (Math.PI * 2 / petalCount) * p;
+            ctx.save();
+            ctx.rotate(pAngle);
+            ctx.beginPath();
+            ctx.ellipse(10, 0, 11, 4.5, 0, 0, Math.PI * 2);
+
+            const petalGrad = ctx.createLinearGradient(0, 0, 14, 0);
+            if (pad.flowerColor === 'pink') {
+              petalGrad.addColorStop(0, '#ffffff');
+              petalGrad.addColorStop(0.65, '#f472b6');
+              petalGrad.addColorStop(1, '#db2777');
+            } else if (pad.flowerColor === 'gold') {
+              petalGrad.addColorStop(0, '#ffffff');
+              petalGrad.addColorStop(0.65, '#fde047');
+              petalGrad.addColorStop(1, '#eab308');
+            } else {
+              petalGrad.addColorStop(0, '#ffffff');
+              petalGrad.addColorStop(0.7, '#f8fafc');
+              petalGrad.addColorStop(1, '#e2e8f0');
+            }
+            ctx.fillStyle = petalGrad;
+            ctx.fill();
+            ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.5)' : 'rgba(226, 232, 240, 0.8)';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+            ctx.restore();
+          }
+
+          // Golden center stamen
+          ctx.beginPath();
+          ctx.arc(0, 0, 3.8, 0, Math.PI * 2);
+          ctx.fillStyle = '#fbbf24';
+          ctx.fill();
+
+          ctx.restore();
+        }
+
+        ctx.restore();
+      });
+    }
+
+    // Drifting Sakura / Lotus Petals
+    function drawFloatingPetals(ctx, petals, time, isDark, scrollY, viewH, pageH, width) {
+      petals.forEach(petal => {
+        petal.x += petal.vx + Math.sin(time * 0.3 + petal.phase) * 0.18;
+        petal.y += petal.vy;
+        petal.rotation += petal.rotSpeed;
+
+        if (petal.y > pageH + 20) {
+          petal.y = -20;
+          petal.x = Math.random() * width;
+        }
+        if (petal.x < -20) petal.x = width + 20;
+        if (petal.x > width + 20) petal.x = -20;
+
+        const screenY = petal.y - scrollY;
+        if (screenY < -30 || screenY > viewH + 30) return;
+
+        ctx.save();
+        ctx.translate(petal.x, petal.y);
+        ctx.rotate(petal.rotation);
+        ctx.scale(petal.scale, petal.scale);
+
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 6.2, 3.0, 0, 0, Math.PI * 2);
+
+        if (petal.color === 'pink') {
+          const pGrad = ctx.createLinearGradient(-6, 0, 6, 0);
+          pGrad.addColorStop(0, '#ffffff');
+          pGrad.addColorStop(0.7, '#f472b6');
+          pGrad.addColorStop(1, '#db2777');
+          ctx.fillStyle = pGrad;
+        } else if (petal.color === 'gold') {
+          const pGrad = ctx.createLinearGradient(-6, 0, 6, 0);
+          pGrad.addColorStop(0, '#ffffff');
+          pGrad.addColorStop(0.7, '#fde047');
+          pGrad.addColorStop(1, '#eab308');
+          ctx.fillStyle = pGrad;
+        } else {
+          ctx.fillStyle = '#ffffff';
+        }
+        ctx.globalAlpha = isDark ? 0.75 : 0.88;
+        ctx.fill();
+        ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.4)' : 'rgba(203, 213, 225, 0.6)';
+        ctx.lineWidth = 0.4;
+        ctx.stroke();
+        ctx.restore();
+      });
+    }
+
+    // Simulation State Stores
+    const fishList = [];
+    const lilyPads = [];
+    const petals = [];
+    const ambientWaves = [];
+    let ripples = [];
+    let foodList = [];
+    let bubbles = [];
+    let pelletIdCounter = 0;
+
+    function initLilyPads(w) {
+      lilyPads.length = 0;
+      petals.length = 0;
+      ambientWaves.length = 0;
+
+      const targetCount = w < 768 ? 16 : 26;
+      for (let i = 0; i < targetCount; i++) {
+        const radius = 34 + Math.random() * 28;
+        let placed = false;
+        let attempts = 0;
+        const slotHeight = (pageHeight - 240) / targetCount;
+        const tierY = 120 + i * slotHeight;
+
+        while (!placed && attempts < 50) {
+          attempts++;
+          const candY = tierY + (Math.random() - 0.5) * slotHeight * 0.85;
+          let candX = i % 3 === 0 ? w * (0.04 + Math.random() * 0.12) : (i % 3 === 1 ? w * (0.84 + Math.random() * 0.12) : w * (0.16 + Math.random() * 0.68));
+
+          const overlaps = lilyPads.some(p => Math.hypot(p.x - candX, p.y - candY) < (p.radius + radius + 22));
+          if (!overlaps) {
+            const drops = [];
+            const dropCount = Math.floor(Math.random() * 3) + 1;
+            for (let d = 0; d < dropCount; d++) {
+              drops.push({
+                rX: (Math.random() - 0.5) * radius * 0.65,
+                rY: (Math.random() - 0.5) * radius * 0.65,
+                r: 2 + Math.random() * 1.8
+              });
+            }
+            lilyPads.push({
+              x: candX, y: candY, radius,
+              rotation: Math.random() * Math.PI * 2,
+              notchAngle: Math.random() * Math.PI * 2,
+              notchWidth: 0.32 + Math.random() * 0.12,
+              bobPhase: Math.random() * Math.PI * 2,
+              hasFlower: i % 2 === 0,
+              flowerColor: i % 4 === 0 ? 'pink' : i % 4 === 1 ? 'white' : 'gold',
+              drops
+            });
+            placed = true;
+          }
+        }
+      }
+
+      // Petals
+      const petalCount = w < 768 ? 16 : 28;
+      for (let p = 0; p < petalCount; p++) {
+        petals.push({
+          x: Math.random() * w,
+          y: Math.random() * pageHeight,
+          vx: (Math.random() - 0.5) * 0.28,
+          vy: 0.18 + Math.random() * 0.28,
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.016,
+          scale: 0.7 + Math.random() * 0.55,
+          color: p % 3 === 0 ? 'pink' : p % 3 === 1 ? 'white' : 'gold',
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      // Waves
+      for (let wv = 0; wv < 6; wv++) {
+        ambientWaves.push({
+          x: Math.random() * w,
+          y: Math.random() * pageHeight,
+          radius: 30 + Math.random() * 120,
+          maxRadius: 180 + Math.random() * 140,
+          opacity: 0.01 + Math.random() * 0.02,
+          maxOpacity: 0.035,
+          speed: 0.25 + Math.random() * 0.2,
+          driftX: (Math.random() - 0.5) * 0.1,
+          driftY: 0.05 + Math.random() * 0.1
+        });
+      }
+    }
+
+    function initFish(w) {
+      fishList.length = 0;
+      const count = w < 900 ? 8 : 12;
+      const patterns = ['kohaku', 'sanke', 'ogon', 'tancho', 'showa', 'asagi', 'kohaku', 'sanke', 'ogon', 'tancho', 'showa', 'kohaku'];
+
+      for (let i = 0; i < count; i++) {
+        const size = 0.82 + Math.random() * 0.36;
+        const spineLength = 14;
+        const x = Math.random() * w;
+        const y = (i / count) * pageHeight + (Math.random() - 0.5) * (pageHeight / count) * 0.6;
+        const angle = Math.random() * Math.PI * 2;
+        const pattern = patterns[i % patterns.length];
+
+        const spine = [];
+        for (let j = 0; j < spineLength; j++) {
+          spine.push({
+            x: x - Math.cos(angle) * (j * 5.8 * size),
+            y: y - Math.sin(angle) * (j * 5.8 * size),
+            angle
+          });
+        }
+
+        const baseSpeed = 0.36 + Math.random() * 0.20;
+        fishList.push({
+          x, y,
+          speed: baseSpeed,
+          targetSpeed: baseSpeed,
+          baseSpeed,
+          angle,
+          targetAngle: angle,
+          turnSpeed: 0.008 + Math.random() * 0.004,
+          size,
+          pattern,
+          spine,
+          spineLength,
+          swimPhase: Math.random() * Math.PI * 2,
+          swimFreq: 0.016 + Math.random() * 0.008,
+          fleeTimer: 0,
+          colorMain: pattern === 'ogon' ? '#fde047' : pattern === 'asagi' ? '#94a3b8' : '#ffffff',
+          colorPattern: pattern === 'asagi' ? '#dc2626' : '#ea580c',
+          colorBlack: '#0f172a'
+        });
+      }
+    }
+
+    function addRipple(x, y, maxRadius = 75, speed = 0.9, color) {
+      ripples.push({ x, y, radius: 4, maxRadius, opacity: 0.55, speed, color });
+    }
+
+    function addFood(x, y) {
+      pelletIdCounter++;
+      foodList.push({
+        id: pelletIdCounter,
+        x, y,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        radius: 3.8,
+        opacity: 1,
+        eaten: false
+      });
+      addRipple(x, y, 45, 0.8, theme === 'dark' ? 'rgba(251, 191, 36, 0.5)' : 'rgba(217, 119, 6, 0.45)');
+    }
+
+    // Global Click Handlers
+    window.addEventListener('click', (e) => {
+      if (!koiEnabled) return;
+      if (e.target.closest('button, a, input, textarea, select, .glass-card, pre')) return;
+
+      const docX = e.clientX;
+      const docY = e.clientY + window.scrollY;
+      addRipple(docX, docY, 85, 1.3);
+
+      fishList.forEach(fish => {
+        if (Math.hypot(fish.x - docX, fish.y - docY) < 280) {
+          fish.fleeTimer = 50 + Math.floor(Math.random() * 25);
+          fish.fleeTarget = { x: docX, y: docY };
+        }
+      });
+    });
+
+    window.addEventListener('contextmenu', (e) => {
+      if (!koiEnabled) return;
+      if (e.target.closest('input, textarea, select')) return;
+      e.preventDefault();
+      const docX = e.clientX;
+      const docY = e.clientY + window.scrollY;
+      addFood(docX, docY);
+    });
+
+    // Initialize Canvas Objects
+    initLilyPads(width);
+    initFish(width);
+
+    let time = 0;
+    function renderKoiCanvas() {
+      if (!koiEnabled) {
+        requestAnimationFrame(renderKoiCanvas);
+        return;
+      }
+
+      time += 0.005;
+      ctx.clearRect(0, 0, width, height);
+
+      const isDark = theme !== 'light';
+
+      // 1. Base Water Gradient
+      const waterGrad = ctx.createLinearGradient(0, 0, width, height);
+      if (isDark) {
+        waterGrad.addColorStop(0, '#030d14');
+        waterGrad.addColorStop(0.5, '#051824');
+        waterGrad.addColorStop(1, '#02090f');
+      } else {
+        waterGrad.addColorStop(0, '#eaf7fa');
+        waterGrad.addColorStop(0.5, '#d6eff5');
+        waterGrad.addColorStop(1, '#e2f2f7');
+      }
+      ctx.fillStyle = waterGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Large Subtle Ambient Atmosphere
+      ctx.save();
+      for (let g = 0; g < 2; g++) {
+        const gx = ((Math.sin(time * 0.15 + g * 2.2) * 0.3 + 0.5) * width);
+        const gy = ((Math.cos(time * 0.12 + g * 1.8) * 0.3 + 0.5) * height);
+        const gRadius = Math.max(width, height) * 0.55;
+        const gGrad = ctx.createRadialGradient(gx, gy, 0, gx, gy, gRadius);
+        gGrad.addColorStop(0, isDark ? 'rgba(56, 189, 248, 0.022)' : 'rgba(2, 132, 199, 0.028)');
+        gGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gGrad;
+        ctx.beginPath();
+        ctx.arc(gx, gy, gRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+      // Apply Scroll Translation
+      ctx.save();
+      ctx.translate(0, -scrollY);
+
+      // 3. Ambient Wavelets
+      ambientWaves.forEach(wave => {
+        wave.radius += wave.speed;
+        wave.x += wave.driftX;
+        wave.y += wave.driftY;
+        const progress = wave.radius / wave.maxRadius;
+        wave.opacity = progress < 0.3 ? (progress / 0.3) * wave.maxOpacity : (1 - (progress - 0.3) / 0.7) * wave.maxOpacity;
+
+        if (wave.radius >= wave.maxRadius) {
+          wave.radius = 20;
+          wave.x = Math.random() * width;
+          wave.y = Math.random() * pageHeight;
+        }
+
+        const screenY = wave.y - scrollY;
+        if (screenY > -wave.radius && screenY < height + wave.radius) {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(wave.x, wave.y, wave.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = isDark ? `rgba(56, 189, 248, ${wave.opacity})` : `rgba(2, 132, 199, ${wave.opacity})`;
+          ctx.lineWidth = 1.2;
+          ctx.stroke();
+          ctx.restore();
+        }
+      });
+
+      // 4. Food Pellets
+      const activeFood = foodList.filter(p => !p.eaten && p.opacity > 0);
+      foodList = activeFood;
+
+      activeFood.forEach(pellet => {
+        pellet.x += pellet.vx;
+        pellet.y += pellet.vy;
+        pellet.vx *= 0.98;
+        pellet.vy *= 0.98;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(pellet.x + 5, pellet.y + 7, pellet.radius * 0.9, 0, Math.PI * 2);
+        ctx.fillStyle = isDark ? 'rgba(0,0,0,0.3)' : 'rgba(15, 23, 42, 0.12)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(pellet.x, pellet.y, pellet.radius, 0, Math.PI * 2);
+        ctx.fillStyle = isDark ? '#fbbf24' : '#d97706';
+        ctx.shadowColor = isDark ? 'rgba(251, 191, 36, 0.5)' : 'rgba(217, 119, 6, 0.3)';
+        ctx.shadowBlur = 5;
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // 5. Koi Fish (Underneath Lily Pads)
+      fishList.forEach(fish => {
+        fish.swimPhase += fish.swimFreq * (fish.speed / fish.baseSpeed);
+
+        if (fish.fleeTimer > 0) {
+          fish.fleeTimer--;
+          if (fish.fleeTarget) {
+            const dx = fish.x - fish.fleeTarget.x;
+            const dy = fish.y - fish.fleeTarget.y;
+            fish.targetAngle = Math.atan2(dy, dx);
+            fish.targetSpeed = fish.baseSpeed * 1.8;
+          }
+        } else if (activeFood.length > 0) {
+          let closestDist = Infinity;
+          let targetPellet = null;
+
+          activeFood.forEach(p => {
+            const dist = Math.hypot(p.x - fish.x, p.y - fish.y);
+            if (dist < 420 && dist < closestDist) {
+              closestDist = dist;
+              targetPellet = p;
+            }
+          });
+
+          if (targetPellet) {
+            const dx = targetPellet.x - fish.x;
+            const dy = targetPellet.y - fish.y;
+            fish.targetAngle = Math.atan2(dy, dx);
+            fish.targetSpeed = Math.min(fish.baseSpeed * 1.5, Math.max(0.4, closestDist * 0.007));
+
+            if (closestDist < 16 * fish.size) {
+              targetPellet.eaten = true;
+              addRipple(targetPellet.x, targetPellet.y, 35, 0.8, isDark ? 'rgba(251, 191, 36, 0.5)' : 'rgba(217, 119, 6, 0.4)');
+              for (let b = 0; b < 3; b++) {
+                bubbles.push({
+                  x: targetPellet.x + (Math.random() - 0.5) * 6,
+                  y: targetPellet.y + (Math.random() - 0.5) * 6,
+                  vx: (Math.random() - 0.5) * 0.6,
+                  vy: -0.4 - Math.random() * 0.6,
+                  radius: 1.5 + Math.random() * 2,
+                  opacity: 0.75
+                });
+              }
+            }
+          }
+        } else {
+          fish.targetSpeed = fish.baseSpeed * (0.92 + Math.sin(time * 0.3 + fish.size) * 0.12);
+          if (Math.random() < 0.006) fish.targetAngle += (Math.random() - 0.5) * 0.30;
+        }
+
+        // Keep inside bounds
+        const pad = 100;
+        if (fish.x < pad) fish.targetAngle = 0;
+        else if (fish.x > width - pad) fish.targetAngle = Math.PI;
+        if (fish.y < pad) fish.targetAngle = Math.PI / 2;
+        else if (fish.y > pageHeight - pad) fish.targetAngle = -Math.PI / 2;
+
+        let angleDiff = fish.targetAngle - fish.angle;
+        while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+        while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+        fish.angle += angleDiff * fish.turnSpeed;
+
+        fish.speed += (fish.targetSpeed - fish.speed) * 0.025;
+        fish.x += Math.cos(fish.angle) * fish.speed;
+        fish.y += Math.sin(fish.angle) * fish.speed;
+        fish.x = Math.max(15, Math.min(width - 15, fish.x));
+        fish.y = Math.max(15, Math.min(pageHeight - 15, fish.y));
+
+        const headSway = Math.sin(fish.swimPhase) * 0.045;
+        fish.spine[0] = { x: fish.x, y: fish.y, angle: fish.angle + headSway };
+        const segDist = 5.8 * fish.size;
+
+        for (let j = 1; j < fish.spine.length; j++) {
+          const prev = fish.spine[j - 1];
+          const curr = fish.spine[j];
+          const dx = prev.x - curr.x;
+          const dy = prev.y - curr.y;
+          let segAngle = Math.atan2(dy, dx);
+          if (j >= 8) {
+            const flexRatio = (j - 8) / (fish.spine.length - 8);
+            segAngle += Math.sin(fish.swimPhase - j * 0.28) * (0.04 * flexRatio);
+          }
+          curr.x = prev.x - Math.cos(segAngle) * segDist;
+          curr.y = prev.y - Math.sin(segAngle) * segDist;
+          curr.angle = segAngle;
+        }
+
+        const fishScreenY = fish.y - scrollY;
+        if (fishScreenY > -180 && fishScreenY < height + 180) {
+          drawDemonisKoi(ctx, fish, isDark);
+        }
+      });
+
+      // 6. Lily Pads
+      drawLilyPads(ctx, lilyPads, time, isDark, scrollY, height);
+
+      // 7. Drifting Petals
+      drawFloatingPetals(ctx, petals, time, isDark, scrollY, height, pageHeight, width);
+
+      // 8. Ripples
+      const activeRipples = [];
+      ripples.forEach(ripple => {
+        ripple.radius += ripple.speed;
+        ripple.opacity -= 0.007;
+        if (ripple.opacity > 0 && ripple.radius < ripple.maxRadius) {
+          activeRipples.push(ripple);
+          const screenY = ripple.y - scrollY;
+          if (screenY > -ripple.maxRadius && screenY < height + ripple.maxRadius) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(ripple.x, ripple.y, ripple.radius, 0, Math.PI * 2);
+            ctx.strokeStyle = ripple.color || (isDark ? `rgba(56, 189, 248, ${ripple.opacity * 0.45})` : `rgba(2, 132, 199, ${ripple.opacity * 0.32})`);
+            ctx.lineWidth = Math.max(0.75, 1.8 * (1 - ripple.radius / ripple.maxRadius));
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+      });
+      ripples = activeRipples;
+
+      // 9. Bubbles
+      const activeBubbles = [];
+      bubbles.forEach(bubble => {
+        bubble.x += bubble.vx;
+        bubble.y += bubble.vy;
+        bubble.opacity -= 0.012;
+        bubble.radius += 0.05;
+        if (bubble.opacity > 0) {
+          activeBubbles.push(bubble);
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+          ctx.fillStyle = isDark ? `rgba(255, 255, 255, ${bubble.opacity * 0.4})` : `rgba(2, 132, 199, ${bubble.opacity * 0.35})`;
+          ctx.fill();
+          ctx.restore();
+        }
+      });
+      bubbles = activeBubbles;
+
+      ctx.restore();
+      requestAnimationFrame(renderKoiCanvas);
+    }
+    requestAnimationFrame(renderKoiCanvas);
+
+    // Zen Control Handlers
+    function toggleTheme() {
+      theme = theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', theme);
+      const icon = document.getElementById('themeIcon');
+      const label = document.getElementById('themeLabel');
+      if (theme === 'dark') {
+        icon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+        label.innerText = 'Day';
+      } else {
+        icon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+        label.innerText = 'Night';
+      }
+    }
+
+    function toggleKoi() {
+      koiEnabled = !koiEnabled;
+      const btn = document.getElementById('koiBtn');
+      const label = document.getElementById('koiLabel');
+      if (koiEnabled) {
+        btn.classList.add('active');
+        label.innerText = 'Koi On';
+        canvas.style.display = 'block';
+      } else {
+        btn.classList.remove('active');
+        label.innerText = 'Koi Off';
+        canvas.style.display = 'none';
+      }
+    }
+
+    function dismissHint() {
+      document.getElementById('zenHintPill').style.display = 'none';
+    }
+    setTimeout(dismissHint, 7000);
+
+    function closeMobileMenu() {
+      document.getElementById('mobileNavBackdrop').classList.remove('open');
+    }
+    document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+      document.getElementById('mobileNavBackdrop').classList.toggle('open');
+    });
+    document.getElementById('mobileNavClose').addEventListener('click', closeMobileMenu);
+
+    /* ==========================================================================
+       2. UNIFIED MCP PLAYGROUND CONTROLLER (MULTI-FUNCTION ENGINE)
+       ========================================================================== */
+    let currentService = 'shopee';
+    let currentToolId = 'search_products';
+    let viewMode = 'cards';
+    let requestHistory = [];
+
+    const serviceTools = {
+      shopee: [
+        {
+          id: 'search_products',
+          label: 'search_products',
+          desc: 'Search Shopee ID catalog with filters, price sorting, and IDR formatting.',
+          inputs: [
+            { name: 'keyword', label: 'Keyword', placeholder: 'e.g. kopi arabika gayo', default: 'kopi arabika gayo', type: 'text', flex: 2 },
+            { name: 'limit', label: 'Limit', default: '5', type: 'select', options: ['5', '10', '20'] }
+          ],
+          presets: [
+            { label: 'kopi arabika', values: { keyword: 'kopi arabika gayo', limit: '5' } },
+            { label: 'sepatu sneakers', values: { keyword: 'sepatu sneakers pria', limit: '5' } },
+            { label: 'keyboard wireless', values: { keyword: 'mechanical keyboard wireless', limit: '5' } },
+            { label: 'macbook air', values: { keyword: 'macbook air m2', limit: '5' } }
+          ],
+          buildUrl: (vals) => `/shopee/api/products/search?keyword=${encodeURIComponent(vals.keyword)}&limit=${vals.limit || 5}`
+        },
+        {
+          id: 'get_product_detail',
+          label: 'get_product_detail',
+          desc: 'Fetch full item specifications, variants, and stock by shopId and itemId.',
+          inputs: [
+            { name: 'shopId', label: 'Shop ID', placeholder: 'e.g. 27059760', default: '27059760', type: 'text', flex: 1 },
+            { name: 'itemId', label: 'Item ID', placeholder: 'e.g. 1084803714', default: '1084803714', type: 'text', flex: 1 }
+          ],
+          presets: [
+            { label: 'Kapal Api Spesial (1084803714)', values: { shopId: '27059760', itemId: '1084803714' } },
+            { label: 'Kopi Arabika Gayo (1084803715)', values: { shopId: '27059760', itemId: '1084803715' } },
+            { label: 'ASUS Vivobook Go 14 (284910291)', values: { shopId: '19482011', itemId: '284910291' } }
+          ],
+          buildUrl: (vals) => `/shopee/api/products/detail?shopId=${vals.shopId}&itemId=${vals.itemId}`
+        },
+        {
+          id: 'get_product_reviews',
+          label: 'get_product_reviews',
+          desc: 'Fetch customer reviews, buyer comments, and star ratings.',
+          inputs: [
+            { name: 'shopId', label: 'Shop ID', placeholder: '27059760', default: '27059760', type: 'text', flex: 1 },
+            { name: 'itemId', label: 'Item ID', placeholder: '1084803714', default: '1084803714', type: 'text', flex: 1 },
+            { name: 'starFilter', label: 'Filter', default: '0', type: 'select', options: [{ val: '0', text: 'All Ratings' }, { val: '5', text: '5 Stars ★★★★★' }, { val: '4', text: '4 Stars ★★★★' }] }
+          ],
+          presets: [
+            { label: 'Kapal Api Reviews', values: { shopId: '27059760', itemId: '1084803714', starFilter: '0' } },
+            { label: '5-Star Reviews', values: { shopId: '27059760', itemId: '1084803714', starFilter: '5' } },
+            { label: 'Kopi Gayo Reviews', values: { shopId: '27059760', itemId: '1084803715', starFilter: '5' } }
+          ],
+          buildUrl: (vals) => `/shopee/api/products/reviews?shopId=${vals.shopId}&itemId=${vals.itemId}&starFilter=${vals.starFilter || 0}&limit=5`
+        },
+        {
+          id: 'get_shop_info',
+          label: 'get_shop_info',
+          desc: 'Fetch seller metrics, follower counts, and official badges.',
+          inputs: [
+            { name: 'shopId', label: 'Shop ID or Username', placeholder: '27059760 or kapalapi_official', default: '27059760', type: 'text', flex: 2 }
+          ],
+          presets: [
+            { label: 'Kapal Api (27059760)', values: { shopId: '27059760' } },
+            { label: 'kapalapi_official', values: { shopId: 'kapalapi_official' } },
+            { label: 'indomaret_official', values: { shopId: 'indomaret_official' } }
+          ],
+          buildUrl: (vals) => isNaN(Number(vals.shopId)) ? `/shopee/api/shops/info?username=${encodeURIComponent(vals.shopId)}` : `/shopee/api/shops/info?shopId=${vals.shopId}`
+        },
+        {
+          id: 'search_shops',
+          label: 'search_shops',
+          desc: 'Find merchants and official stores by seller keyword.',
+          inputs: [
+            { name: 'keyword', label: 'Merchant Keyword', placeholder: 'e.g. kapal api, samsung', default: 'kapal api', type: 'text', flex: 2 }
+          ],
+          presets: [
+            { label: 'kapal api', values: { keyword: 'kapal api' } },
+            { label: 'indomaret', values: { keyword: 'indomaret' } },
+            { label: 'samsung', values: { keyword: 'samsung' } }
+          ],
+          buildUrl: (vals) => `/shopee/api/shops/search?keyword=${encodeURIComponent(vals.keyword)}&limit=5`
+        },
+        {
+          id: 'get_flash_sale_items',
+          label: 'get_flash_sale_items',
+          desc: 'Live discounted promotional items and limited-time stock.',
+          inputs: [
+            { name: 'limit', label: 'Limit', default: '5', type: 'select', options: ['5', '10', '20'] }
+          ],
+          presets: [
+            { label: 'Top 5 Deals', values: { limit: '5' } },
+            { label: 'Top 10 Deals', values: { limit: '10' } }
+          ],
+          buildUrl: (vals) => `/shopee/api/flash-sale?limit=${vals.limit || 5}`
+        },
+        {
+          id: 'get_trending_keywords',
+          label: 'get_trending_keywords',
+          desc: 'Current trending search terms on Shopee Indonesia.',
+          inputs: [
+            { name: 'limit', label: 'Limit', default: '5', type: 'select', options: ['5', '10', '20'] }
+          ],
+          presets: [
+            { label: 'Top 5 Trending', values: { limit: '5' } },
+            { label: 'Top 10 Trending', values: { limit: '10' } }
+          ],
+          buildUrl: (vals) => `/shopee/api/trending?limit=${vals.limit || 5}`
+        },
+        {
+          id: 'get_categories',
+          label: 'get_categories',
+          desc: 'Shopee category taxonomy tree with parent and subcategories.',
+          inputs: [],
+          presets: [
+            { label: 'Explore Category Tree', values: {} }
+          ],
+          buildUrl: () => `/shopee/api/categories`
+        }
+      ],
+
+      tokopedia: [
+        {
+          id: 'search_products',
+          label: 'search_products',
+          desc: 'Live Tokopedia search with pricing, ratings, and merchant info.',
+          inputs: [
+            { name: 'q', label: 'Search Query', placeholder: 'e.g. indomie, iphone 15, monitor', default: 'indomie goreng', type: 'text', flex: 2 },
+            { name: 'limit', label: 'Limit', default: '5', type: 'select', options: ['5', '10', '20'] }
+          ],
+          presets: [
+            { label: 'indomie goreng', values: { q: 'indomie goreng', limit: '5' } },
+            { label: 'iphone 15 pro', values: { q: 'iphone 15 pro', limit: '5' } },
+            { label: 'monitor gaming', values: { q: 'monitor gaming 27 inch', limit: '5' } },
+            { label: 'kaos polos', values: { q: 'kaos polos combed 30s', limit: '5' } }
+          ],
+          buildUrl: (vals) => `/tokopedia/api/search?q=${encodeURIComponent(vals.q)}&limit=${vals.limit || 5}`
+        },
+        {
+          id: 'get_shop_info',
+          label: 'get_shop_info',
+          desc: 'Tokopedia merchant profile, badges, followers, and feedback stats.',
+          inputs: [
+            { name: 'domain', label: 'Shop Domain / ID', placeholder: 'e.g. tokohbd, firsthandstore-883', default: 'tokohbd', type: 'text', flex: 2 }
+          ],
+          presets: [
+            { label: 'TOKO.HBD Store', values: { domain: 'tokohbd' } },
+            { label: 'Firsthand Store', values: { domain: 'firsthandstore-883' } }
+          ],
+          buildUrl: (vals) => `/tokopedia/api/shops/${encodeURIComponent(vals.domain)}`
+        },
+        {
+          id: 'get_product_detail',
+          label: 'get_product_detail',
+          desc: 'Product specifications, price details, and merchant deep-link.',
+          inputs: [
+            { name: 'identifier', label: 'Product ID', placeholder: 'e.g. 102907902148', default: '102907902148', type: 'text', flex: 2 }
+          ],
+          presets: [
+            { label: 'Baju Indomie Sample', values: { identifier: '102907902148' } },
+            { label: 'Panci Susu Stainless', values: { identifier: '103710199904' } }
+          ],
+          buildUrl: (vals) => `/tokopedia/api/products/${encodeURIComponent(vals.identifier)}`
+        },
+        {
+          id: 'get_product_reviews',
+          label: 'get_product_reviews',
+          desc: 'Tokopedia customer ratings, reviews, and buyer comments.',
+          inputs: [
+            { name: 'id', label: 'Product ID', placeholder: 'e.g. 102907902148', default: '102907902148', type: 'text', flex: 2 }
+          ],
+          presets: [
+            { label: 'Baju Indomie Reviews', values: { id: '102907902148' } },
+            { label: 'Panci Susu Reviews', values: { id: '103710199904' } }
+          ],
+          buildUrl: (vals) => `/tokopedia/api/products/${encodeURIComponent(vals.id)}/reviews?limit=5`
+        }
+      ],
+
+      facebook: [
+        {
+          id: 'search_marketplace',
+          label: 'search_marketplace',
+          desc: 'Search hyperlocal listings across Indonesian cities.',
+          inputs: [
+            { name: 'query', label: 'Search Item', placeholder: 'e.g. honda vario, sofa, macbook', default: 'honda vario 150', type: 'text', flex: 2 },
+            { name: 'location', label: 'Location', default: 'jakarta', type: 'select', options: ['jakarta', 'bandung', 'surabaya', 'bali', 'medan'] }
+          ],
+          presets: [
+            { label: 'honda vario', values: { query: 'honda vario 150', location: 'jakarta' } },
+            { label: 'macbook pro', values: { query: 'macbook pro m2', location: 'jakarta' } },
+            { label: 'sofa tamu', values: { query: 'sofa ruang tamu', location: 'bandung' } },
+            { label: 'kamera sony', values: { query: 'sony a6400', location: 'surabaya' } }
+          ],
+          buildUrl: (vals) => `/facebook/api/marketplace/search?query=${encodeURIComponent(vals.query)}&location=${encodeURIComponent(vals.location || 'jakarta')}&limit=5`
+        },
+        {
+          id: 'get_nearby_listings',
+          label: 'get_nearby_listings',
+          desc: 'Explore trending items near your designated city coordinates.',
+          inputs: [
+            { name: 'location', label: 'City Location', default: 'jakarta', type: 'select', options: ['jakarta', 'bandung', 'surabaya', 'bali'] }
+          ],
+          presets: [
+            { label: 'Jakarta Listings', values: { location: 'jakarta' } },
+            { label: 'Bandung Listings', values: { location: 'bandung' } },
+            { label: 'Surabaya Listings', values: { location: 'surabaya' } }
+          ],
+          buildUrl: (vals) => `/facebook/api/marketplace/nearby?location=${encodeURIComponent(vals.location || 'jakarta')}&limit=5`
+        },
+        {
+          id: 'get_item_details',
+          label: 'get_item_details',
+          desc: 'Get full seller information, condition, and photos by listing ID.',
+          inputs: [
+            { name: 'id', label: 'Listing ID', placeholder: 'e.g. 4349331471993524', default: '4349331471993524', type: 'text', flex: 2 }
+          ],
+          presets: [
+            { label: 'MacBook Pro M2 (4349331471993524)', values: { id: '4349331471993524' } },
+            { label: 'MacBook Pro M3 (729481902830192)', values: { id: '729481902830192' } },
+            { label: 'Honda Vario 160 (810394829103918)', values: { id: '810394829103918' } },
+            { label: 'Dell Inspiron 14 (1106203161967859)', values: { id: '1106203161967859' } },
+            { label: 'BMW M40 1990 (29399994802922473)', values: { id: '29399994802922473' } }
+          ],
+          buildUrl: (vals) => `/facebook/api/marketplace/items/${encodeURIComponent(vals.id)}`
+        },
+        {
+          id: 'get_categories',
+          label: 'get_categories',
+          desc: 'Explore Facebook Marketplace category structure.',
+          inputs: [],
+          presets: [
+            { label: 'Explore Taxonomy', values: {} }
+          ],
+          buildUrl: () => `/facebook/api/marketplace/categories`
+        }
+      ],
+
+      coursera: [
+        {
+          id: 'get_course_outline',
+          label: 'get_course_outline',
+          desc: 'Full course syllabus, modules, weekly lessons, and topics by course slug.',
+          inputs: [
+            { name: 'course', label: 'Course Slug', placeholder: 'e.g. machine-learning, python', default: 'machine-learning', type: 'text', flex: 2 }
+          ],
+          presets: [
+            { label: 'Machine Learning (Andrew Ng)', values: { course: 'machine-learning' } },
+            { label: 'Neural Networks & Deep Learning', values: { course: 'neural-networks-deep-learning' } },
+            { label: 'Python for Everybody', values: { course: 'python' } },
+            { label: 'AI For Everyone', values: { course: 'ai-for-everyone' } }
+          ],
+          buildUrl: (vals) => `/coursera/api/outline?course=${encodeURIComponent(vals.course || 'machine-learning')}`
+        },
+        {
+          id: 'get_lecture_transcript',
+          label: 'get_lecture_transcript',
+          desc: 'Timestamped lecture transcripts and subtitles.',
+          inputs: [
+            { name: 'course', label: 'Course Slug', placeholder: 'e.g. machine-learning', default: 'machine-learning', type: 'text', flex: 1 },
+            { name: 'itemId', label: 'Lecture Item ID', placeholder: 'e.g. 2f2PA', default: '2f2PA', type: 'text', flex: 1 }
+          ],
+          presets: [
+            { label: 'Gradient Descent (2f2PA)', values: { course: 'machine-learning', itemId: '2f2PA' } },
+            { label: 'Implementing GD (TXDBu)', values: { course: 'machine-learning', itemId: 'TXDBu' } },
+            { label: 'Learning Rate (OoP3Y)', values: { course: 'machine-learning', itemId: 'OoP3Y' } }
+          ],
+          buildUrl: (vals) => `/coursera/api/transcript?course=${encodeURIComponent(vals.course)}&itemId=${encodeURIComponent(vals.itemId)}&language=en&format=clean`
+        },
+        {
+          id: 'get_reading_content',
+          label: 'get_reading_content',
+          desc: 'Full text content and markdown from course reading items.',
+          inputs: [
+            { name: 'course', label: 'Course Slug', placeholder: 'e.g. machine-learning', default: 'machine-learning', type: 'text', flex: 1 },
+            { name: 'itemId', label: 'Reading Item ID', placeholder: 'e.g. uKXnK', default: 'uKXnK', type: 'text', flex: 1 }
+          ],
+          presets: [
+            { label: 'Lab Notebooks Notice (uKXnK)', values: { course: 'machine-learning', itemId: 'uKXnK' } }
+          ],
+          buildUrl: (vals) => `/coursera/api/reading?course=${encodeURIComponent(vals.course)}&itemId=${encodeURIComponent(vals.itemId)}`
+        },
+        {
+          id: 'get_item_resources',
+          label: 'get_item_resources',
+          desc: 'Supplementary assets, code notebooks, and downloadable files.',
+          inputs: [
+            { name: 'course', label: 'Course Slug', placeholder: 'e.g. machine-learning', default: 'machine-learning', type: 'text', flex: 1 },
+            { name: 'itemId', label: 'Item ID', placeholder: 'e.g. 2f2PA', default: '2f2PA', type: 'text', flex: 1 }
+          ],
+          presets: [
+            { label: 'Lecture Assets (2f2PA)', values: { course: 'machine-learning', itemId: '2f2PA' } }
+          ],
+          buildUrl: (vals) => `/coursera/api/resources?course=${encodeURIComponent(vals.course)}&itemId=${encodeURIComponent(vals.itemId)}`
+        }
+      ]
+    };
+
+    function setService(service) {
+      currentService = service;
+      document.querySelectorAll('.service-tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`tab-${service}`);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const tools = serviceTools[service];
+      if (tools && tools.length > 0) {
+        currentToolId = tools[0].id;
+      }
+      renderFunctionTabs();
+      renderToolInputs();
+    }
+
+    function setTool(toolId) {
+      currentToolId = toolId;
+      document.querySelectorAll('.function-tab-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById(`tool-tab-${toolId}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      renderToolInputs();
+    }
+
+    function renderFunctionTabs() {
+      const container = document.getElementById('functionTabs');
+      const tools = serviceTools[currentService] || [];
+      container.innerHTML = tools.map(tool => {
+        const isActive = tool.id === currentToolId ? 'active' : '';
+        return `<button type="button" onclick="setTool('${tool.id}')" id="tool-tab-${tool.id}" class="function-tab-btn ${isActive}">${tool.label}</button>`;
+      }).join('');
+    }
+
+    function getCurrentTool() {
+      const tools = serviceTools[currentService] || [];
+      return tools.find(t => t.id === currentToolId) || tools[0];
+    }
+
+    function renderToolInputs() {
+      const tool = getCurrentTool();
+      if (!tool) return;
+
+      const descEl = document.getElementById('functionDesc');
+      if (descEl) descEl.innerText = tool.desc;
+
+      const inputsContainer = document.getElementById('dynamicInputsContainer');
+      let inputsHtml = '';
+
+      if (tool.inputs && tool.inputs.length > 0) {
+        inputsHtml = tool.inputs.map(inp => {
+          const flexStyle = inp.flex ? `flex: ${inp.flex}; min-width: 180px;` : 'flex: 1; min-width: 120px;';
+          if (inp.type === 'select') {
+            const opts = inp.options.map(opt => {
+              if (typeof opt === 'object') {
+                const sel = opt.val === inp.default ? 'selected' : '';
+                return `<option value="${opt.val}" ${sel}>${opt.text}</option>`;
+              }
+              const sel = opt === inp.default ? 'selected' : '';
+              return `<option value="${opt}" ${sel}>${opt}</option>`;
+            }).join('');
+            return `
+              <div style="${flexStyle}">
+                <label style="display: block; font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 0.35rem;">${inp.label}</label>
+                <select id="inp_${inp.name}" class="glass-input" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.82rem; font-family: var(--font-mono); background: rgba(15,23,42,0.8);">
+                  ${opts}
+                </select>
+              </div>
+            `;
+          }
+          return `
+            <div style="${flexStyle}">
+              <label style="display: block; font-size: 0.75rem; font-family: var(--font-mono); color: var(--text-muted); margin-bottom: 0.35rem;">${inp.label}</label>
+              <input type="text" id="inp_${inp.name}" value="${inp.default || ''}" placeholder="${inp.placeholder || ''}" class="glass-input" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.82rem; font-family: var(--font-mono);">
+            </div>
+          `;
+        }).join('');
+      } else {
+        inputsHtml = `
+          <div style="flex: 1; min-width: 200px; color: var(--text-muted); font-size: 0.82rem; font-family: var(--font-mono); display: flex; align-items: center; height: 42px;">
+            This tool requires no additional arguments. Click Execute to query.
+          </div>
+        `;
+      }
+
+      // Append the Execute button at the end
+      inputsHtml += `
+        <div>
+          <button type="submit" id="submitBtn" class="btn btn-primary" style="height: 42px; padding: 0 1.5rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <span id="submitBtnText">Execute</span>
+            <span id="spinner" style="display: none; width: 14px; height: 14px; border: 2px solid #fff; border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite;"></span>
+          </button>
+        </div>
+      `;
+      inputsContainer.innerHTML = inputsHtml;
+
+      // Render Presets
+      const presetContainer = document.getElementById('presetContainer');
+      if (tool.presets && tool.presets.length > 0) {
+        let html = `<span style="font-weight: 600; color: var(--text-muted);">Try presets:</span>`;
+        tool.presets.forEach((p, idx) => {
+          html += `<button type="button" onclick="applyPreset(${idx})" class="preset-chip">${p.label}</button>`;
+        });
+        presetContainer.innerHTML = html;
+        presetContainer.style.display = 'flex';
+      } else {
+        presetContainer.innerHTML = '';
+        presetContainer.style.display = 'none';
+      }
+    }
+
+    function applyPreset(presetIndex) {
+      const tool = getCurrentTool();
+      if (!tool || !tool.presets || !tool.presets[presetIndex]) return;
+      const values = tool.presets[presetIndex].values;
+      Object.keys(values).forEach(key => {
+        const el = document.getElementById(`inp_${key}`);
+        if (el) el.value = values[key];
+      });
+      executeTool();
+    }
+
+    function checkClientRateLimit() {
+      const now = Date.now();
+      requestHistory = requestHistory.filter(t => now - t < 60000);
+      const remaining = Math.max(0, 10 - requestHistory.length);
+      const counter = document.getElementById('quotaCount');
+      counter.innerText = `${remaining}/10 left`;
+      if (remaining === 0) {
+        counter.style.color = '#f43f5e';
+      } else {
+        counter.style.color = 'var(--accent-primary)';
+      }
+      return remaining > 0;
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode;
+      const btnCards = document.getElementById('btnViewCards');
+      const btnJson = document.getElementById('btnViewJson');
+      const cards = document.getElementById('cardsContainer');
+      const json = document.getElementById('jsonContainer');
+
+      if (mode === 'cards') {
+        btnCards.style.background = 'rgba(56, 189, 248, 0.2)';
+        btnCards.style.color = 'var(--accent-primary)';
+        btnJson.style.background = 'transparent';
+        btnJson.style.color = 'var(--text-muted)';
+        cards.style.display = 'grid';
+        json.style.display = 'none';
+      } else {
+        btnCards.style.background = 'transparent';
+        btnCards.style.color = 'var(--text-muted)';
+        btnJson.style.background = 'rgba(56, 189, 248, 0.2)';
+        btnJson.style.color = 'var(--accent-primary)';
+        cards.style.display = 'none';
+        json.style.display = 'block';
+      }
+    }
+
+    function handleExecute(e) {
+      if (e) e.preventDefault();
+      executeTool();
+    }
+
+    async function executeTool() {
+      const tool = getCurrentTool();
+      if (!tool) return;
+
+      const vals = {};
+      if (tool.inputs) {
+        tool.inputs.forEach(inp => {
+          const el = document.getElementById(`inp_${inp.name}`);
+          if (el) vals[inp.name] = el.value.trim();
+        });
+      }
+
+      const apiKey = document.getElementById('apiKeyInput').value.trim();
+      if (!apiKey && !checkClientRateLimit()) {
+        showStatus('error', 'Rate limit reached (10 req/min). Please wait 60s or enter a valid API key.');
+        return;
+      }
+
+      if (!apiKey) {
+        requestHistory.push(Date.now());
+        checkClientRateLimit();
+      }
+
+      const spinner = document.getElementById('spinner');
+      const submitText = document.getElementById('submitBtnText');
+      const submitBtn = document.getElementById('submitBtn');
+      if (spinner) spinner.style.display = 'inline-block';
+      if (submitText) submitText.style.display = 'none';
+      if (submitBtn) submitBtn.disabled = true;
+
+      const endpoint = tool.buildUrl(vals);
+      const fetchOptions = { headers: {} };
+      if (apiKey) {
+        fetchOptions.headers['x-api-key'] = apiKey;
+      }
+
+      const startTime = performance.now();
+      try {
+        const response = await fetch(endpoint, fetchOptions);
+        const latency = (performance.now() - startTime).toFixed(0);
+
+        if (response.status === 429) {
+          const err = await response.json().catch(() => ({}));
+          showStatus('error', `HTTP 429: ${err.error || 'Rate limit exceeded. Try again in 60s.'}`);
+          return;
+        }
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          showStatus('error', `HTTP ${response.status}: ${err.error || response.statusText}`);
+          return;
+        }
+
+        const data = await response.json();
+        showStatus('success', `HTTP 200 OK • ${latency}ms latency • ${currentService.toUpperCase()}.${tool.id}`);
+        renderResults(data);
+      } catch (err) {
+        showStatus('error', `Network Error: ${err.message}`);
+      } finally {
+        if (spinner) spinner.style.display = 'none';
+        if (submitText) submitText.style.display = 'inline-block';
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    }
+
+    function showStatus(type, msg) {
+      const bar = document.getElementById('statusBar');
+      bar.style.display = 'flex';
+      if (type === 'success') {
+        bar.style.background = 'rgba(16, 185, 129, 0.12)';
+        bar.style.border = '1px solid rgba(16, 185, 129, 0.3)';
+        bar.style.color = '#34d399';
+      } else {
+        bar.style.background = 'rgba(244, 63, 94, 0.12)';
+        bar.style.border = '1px solid rgba(244, 63, 94, 0.3)';
+        bar.style.color = '#fb7185';
+      }
+      bar.innerHTML = `<span>${msg}</span><button onclick="document.getElementById('statusBar').style.display='none'" style="background:transparent;border:none;color:inherit;cursor:pointer;font-size:1rem;padding:0 0.25rem;">✕</button>`;
+    }
+
+    function renderResults(data) {
+      document.getElementById('jsonOutput').innerText = JSON.stringify(data, null, 2);
+      const container = document.getElementById('cardsContainer');
+
+      // 1. Coursera Course Outline
+      if (currentService === 'coursera' && currentToolId === 'get_course_outline') {
+        const outline = data.data || data;
+        const modules = outline.modules || [];
+        if (modules.length > 0) {
+          container.innerHTML = modules.map(mod => `
+            <div class="item-card">
+              <div>
+                <span class="live-status-pill" style="margin-bottom: 0.5rem;">Module ${mod.order || 1}</span>
+                <h4 style="font-size: 0.95rem; margin-bottom: 0.35rem; color: var(--text-primary);">${mod.name}</h4>
+                <p style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.5;">${mod.description || 'Module curriculum overview'}</p>
+              </div>
+              <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-top: 0.75rem; border-top: 1px solid var(--glass-border); padding-top: 0.5rem; display: flex; justify-content: space-between;">
+                <span>${mod.lessons ? mod.lessons.length : 0} Lessons</span>
+                <span style="color: var(--accent-amber);">${mod.slug || ''}</span>
+              </div>
+            </div>
+          `).join('');
+          return;
+        }
+      }
+
+      // 2. Coursera Lecture Transcript
+      if (currentService === 'coursera' && currentToolId === 'get_lecture_transcript') {
+        const transcript = data.data || data;
+        const cues = transcript.cues || transcript.subtitles || (Array.isArray(transcript) ? transcript : []);
+        if (cues.length > 0) {
+          container.innerHTML = `
+            <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.5rem; max-height: 480px; overflow-y: auto;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--glass-border); padding-bottom: 0.75rem;">
+                <span style="font-size: 0.85rem; font-weight: 700; color: var(--accent-amber); font-family: var(--font-mono);">
+                  LECTURE TRANSCRIPT (${cues.length} SEGMENTS)
+                </span>
+                <span style="font-size: 0.75rem; color: var(--text-muted); font-family: var(--font-mono);">
+                  Item: ${transcript.itemId || '2f2PA'} &middot; Lang: ${(transcript.language || 'en').toUpperCase()}
+                </span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+                ${cues.map(cue => `
+                  <div style="display: flex; gap: 0.85rem; font-size: 0.84rem; line-height: 1.5;">
+                    <span style="font-family: var(--font-mono); color: var(--accent-tertiary); min-width: 60px; font-weight: 600; font-size: 0.78rem;">[${cue.startTimeFormatted || '00:00'}]</span>
+                    <span style="color: var(--text-secondary);">${cue.text}</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `;
+          return;
+        }
+      }
+
+      // 3. Coursera Reading Content
+      if (currentService === 'coursera' && currentToolId === 'get_reading_content') {
+        const reading = data.data || data;
+        const text = reading.markdown || reading.content || reading.text || '';
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 1.5rem;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-amber); margin-bottom: 0.75rem; font-family: var(--font-mono);">
+              READING RESOURCE (${reading.itemId || 'uKXnK'})
+            </div>
+            <div style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap;">${text}</div>
+          </div>
+        `;
+        return;
+      }
+
+      // 4. Trending Keywords
+      if (currentToolId === 'get_trending_keywords') {
+        const keywords = Array.isArray(data) ? data : (data.keywords || data.data || []);
+        if (keywords.length > 0) {
+          container.innerHTML = `
+            <div style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 0.6rem; padding: 1rem 0;">
+              ${keywords.map((kw, i) => {
+                const term = typeof kw === 'object' ? kw.keyword : kw;
+                const count = typeof kw === 'object' && kw.count ? `<span style="background: rgba(56, 189, 248, 0.2); color: var(--accent-primary); padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; margin-left: 6px;">${kw.count}</span>` : '';
+                return `
+                  <button type="button" onclick="document.querySelectorAll('.function-tab-btn')[0].click(); setTimeout(() => { const inp = document.getElementById('inp_keyword') || document.getElementById('inp_q'); if(inp) { inp.value='${term}'; executeTool(); } }, 50);" class="preset-chip" style="font-size: 0.85rem; padding: 0.4rem 0.9rem;">
+                    #${i + 1} ${term} ${count}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          `;
+          return;
+        }
+      }
+
+      // 5. Product Reviews (Shopee / Tokopedia)
+      if (currentToolId === 'get_product_reviews') {
+        const reviews = data.reviews || data.items || (Array.isArray(data) ? data : (data.data || []));
+        if (reviews && reviews.length > 0) {
+          container.innerHTML = reviews.map(rev => {
+            const author = rev.author || rev.username || rev.buyerUsername || 'Verified Buyer';
+            const rating = rev.rating || rev.ratingStar || 5;
+            const stars = '★'.repeat(rating) + '☆'.repeat(Math.max(0, 5 - rating));
+            const comment = rev.comment || rev.content || 'Produk sangat bagus dan sesuai deskripsi!';
+            const date = rev.createdAt || rev.date || 'Recent';
+            const variation = rev.variation ? `<div style="font-size: 0.72rem; color: var(--text-muted); font-family: var(--font-mono); margin-bottom: 0.35rem;">Varian: ${rev.variation}</div>` : '';
+            return `
+              <div class="item-card">
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                    <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono);">${author}</span>
+                    <span style="color: #fbbf24; font-size: 0.82rem;">${stars}</span>
+                  </div>
+                  ${variation}
+                  <p style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 0.5rem;">${comment}</p>
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); border-top: 1px solid var(--glass-border); padding-top: 0.4rem;">
+                  Verified Purchase &middot; ${date}
+                </div>
+              </div>
+            `;
+          }).join('');
+          return;
+        }
+      }
+
+      // 6. Shop Search & Shop Profile Info
+      if (currentToolId === 'search_shops' || currentToolId === 'get_shop_info') {
+        const shops = Array.isArray(data) ? data : (data.shops || (data.name || data.shopId || data.username ? [data] : []));
+        if (shops && shops.length > 0) {
+          container.innerHTML = shops.map(shop => {
+            const shopName = shop.name || shop.username || 'Official Merchant Store';
+            const followers = shop.followerCount || shop.followers || 0;
+            const rating = shop.ratingStar || shop.rating || 4.9;
+            const location = shop.shopLocation || shop.city || 'Indonesia';
+            const isOfficial = shop.isOfficialShop || shop.isOfficial;
+            const avatar = shop.avatarUrl || shop.imageUrl || 'https://down-id.img.susercontent.com/file/id-50009109-0bd6a9ebd0f2ae9b7e8b9ce7d89897d6';
+            const url = shop.shopUrl || shop.url || (shop.username ? `https://shopee.co.id/search?keyword=${encodeURIComponent(shop.username)}` : '#');
+            return `
+              <div class="item-card" style="padding: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem;">
+                  <img src="${avatar}" alt="${shopName}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; border: 1px solid var(--glass-border);" onerror="this.src='https://down-id.img.susercontent.com/file/id-50009109-0bd6a9ebd0f2ae9b7e8b9ce7d89897d6'">
+                  <div>
+                    <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.15rem;">
+                      ${shopName}
+                      ${isOfficial ? `<span class="live-status-pill" style="margin-left: 0.35rem; font-size: 0.6rem;">OFFICIAL</span>` : ''}
+                    </h4>
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">${location}</div>
+                  </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; text-align: center; margin-bottom: 0.85rem; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: var(--radius-sm);">
+                  <div>
+                    <div style="font-size: 0.68rem; color: var(--text-muted);">Rating</div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: #fbbf24;">★ ${rating}</div>
+                  </div>
+                  <div>
+                    <div style="font-size: 0.68rem; color: var(--text-muted);">Followers</div>
+                    <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-primary);">${Number(followers).toLocaleString()}</div>
+                  </div>
+                </div>
+                <div style="text-align: right;">
+                  <a href="${url}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="min-height: 28px; padding: 0.25rem 0.75rem; font-size: 0.75rem;">Visit Store Profile ↗</a>
+                </div>
+              </div>
+            `;
+          }).join('');
+          return;
+        }
+      }
+
+      // 7. Categories Taxonomy
+      if (currentToolId === 'get_categories') {
+        const cats = Array.isArray(data) ? data : (data.categories || data.data || []);
+        if (cats.length > 0) {
+          container.innerHTML = `
+            <div style="grid-column: 1 / -1; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.75rem;">
+              ${cats.slice(0, 24).map(c => `
+                <div class="glass-card" style="padding: 0.85rem; border-radius: var(--radius-sm); display: flex; align-items: center; gap: 0.6rem;">
+                  <span style="font-size: 1.1rem;">📁</span>
+                  <div>
+                    <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-primary);">${c.name || c.categoryName || 'Category'}</div>
+                    ${c.children && c.children.length ? `<div style="font-size: 0.7rem; color: var(--text-muted); font-family: var(--font-mono);">${c.children.length} subcategories</div>` : ''}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+          return;
+        }
+      }
+
+      // 8. General Product Items (Search, Details, Nearby, Flash Sale)
+      const items = data.items || data.products || (Array.isArray(data) ? data : (data.id || data.name || data.itemId ? [data] : []));
+      if (!items || items.length === 0) {
+        container.innerHTML = `<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-muted); font-family: var(--font-mono);">No items found for this query.</div>`;
+        return;
+      }
+
+      const defaultPlaceholder = `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 300' width='300' height='300'%3E%3Crect width='300' height='300' fill='%231e293b'/%3E%3Cpath d='M90 190 L130 140 L160 170 L195 130 L235 190 Z' fill='%23334155'/%3E%3Ccircle cx='115' cy='115' r='18' fill='%2338bdf8'/%3E%3Ctext x='150' y='240' text-anchor='middle' fill='%2394a3b8' font-family='sans-serif' font-size='14'%3EMCP Product Listing%3C/text%3E%3C/svg%3E`;
+
+      container.innerHTML = items.map(item => {
+        const title = item.name || item.title || 'Catalog Item';
+        let price = 'Rp 0';
+        if (typeof item.price === 'object' && item.price?.formatted) {
+          price = item.price.formatted;
+        } else if (item.formattedPrice) {
+          price = item.formattedPrice;
+        } else if (item.priceFormatted) {
+          price = item.priceFormatted;
+        } else if (typeof item.price === 'number') {
+          price = 'Rp ' + item.price.toLocaleString('id-ID');
+        } else if (item.price) {
+          price = item.price;
+        }
+
+        const image = item.primaryPhotoUrl || (Array.isArray(item.images) && item.images[0]) || item.imageUrl || item.image || item.thumbnail || item.avatarUrl || defaultPlaceholder;
+        let location = 'Indonesia';
+        if (typeof item.location === 'object' && item.location?.city) {
+          location = item.location.city;
+        } else if (item.shop?.city) {
+          location = item.shop.city;
+        } else if (item.shopLocation || item.location) {
+          location = item.shopLocation || item.location;
+        }
+
+        const url = item.productUrl || item.url || item.shopUrl || (item.name ? `https://shopee.co.id/search?keyword=${encodeURIComponent(item.name)}` : '#');
+        const rating = item.rating ? `★ ${item.rating}` : '';
+
+        return `
+          <div class="item-card">
+            <div>
+              <div class="item-img-wrap">
+                <img src="${image}" alt="${title}" class="item-img" onerror="this.onerror=null;this.src='${defaultPlaceholder}'">
+                ${rating ? `<span style="position: absolute; top: 8px; right: 8px; font-size: 0.7rem; font-family: var(--font-mono); background: rgba(0,0,0,0.75); color: #fbbf24; padding: 2px 6px; border-radius: 4px;">${rating}</span>` : ''}
+              </div>
+              <h4 style="font-size: 0.88rem; font-weight: 600; line-height: 1.4; margin-bottom: 0.35rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${title}</h4>
+              <div style="font-family: var(--font-mono); font-size: 1rem; font-weight: 800; color: var(--accent-primary); margin-bottom: 0.5rem;">${price}</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--glass-border); padding-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+              <span style="display: inline-flex; align-items: center; gap: 3px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                ${location}
+              </span>
+              <a href="${url}" target="_blank" rel="noopener noreferrer" style="color: var(--accent-primary); font-weight: 600;">View ↗</a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function copyConfig() {
+      const code = document.getElementById('claudeConfig').innerText;
+      navigator.clipboard.writeText(code);
+      const btn = document.getElementById('copyBtn');
+      const original = btn.innerText;
+      btn.innerText = "✓ Copied!";
+      setTimeout(() => btn.innerText = original, 2000);
+    }
+
+    // Initialize Multi-Function Playground Controller & LocalStorage Key
+    renderFunctionTabs();
+    renderToolInputs();
+    const storedApiKey = localStorage.getItem('mcp_cuang_api_key');
+    if (storedApiKey) {
+      document.getElementById('apiKeyInput').value = storedApiKey;
+    }
+    document.getElementById('apiKeyInput').addEventListener('input', (e) => {
+      localStorage.setItem('mcp_cuang_api_key', e.target.value.trim());
+    });
+  </script>
+</body>
+</html>

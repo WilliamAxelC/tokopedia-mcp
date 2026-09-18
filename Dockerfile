@@ -12,7 +12,7 @@ RUN npm install -g pnpm
 COPY package.json tsconfig.json pnpm-lock.yaml* ./
 
 # Install dependencies (including devDependencies for building)
-RUN pnpm install --frozen-lockfile || pnpm install
+RUN pnpm install --ignore-scripts
 
 # Copy source code
 COPY src ./src
@@ -40,7 +40,7 @@ ENV BASE_PATH=/tokopedia
 COPY package.json pnpm-lock.yaml* ./
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile || pnpm install --prod
+RUN pnpm install --prod --ignore-scripts
 
 # Copy compiled files from builder
 COPY --from=builder /app/dist ./dist
