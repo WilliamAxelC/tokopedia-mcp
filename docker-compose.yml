@@ -78,8 +78,7 @@ services:
       - CACHE_PRODUCT_TTL=${CACHE_PRODUCT_TTL:-1800}
       - CACHE_CATEGORY_TTL=${CACHE_CATEGORY_TTL:-86400}
       - REQUEST_DELAY_MS=${REQUEST_DELAY_MS:-400}
-      - MOCK_ON_BLOCKED=${MOCK_ON_BLOCKED:-true}
-      - TOKOPEDIA_INTERNAL_URL=http://tokopedia-mcp:3001/tokopedia/api/search
+      - MOCK_ON_BLOCKED=${MOCK_ON_BLOCKED:-false}
       - LOG_LEVEL=${LOG_LEVEL:-info}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
